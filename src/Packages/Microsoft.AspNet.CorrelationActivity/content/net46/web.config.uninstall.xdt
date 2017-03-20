@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
+
+  <system.webServer>
+    <modules>
+      <add name="ActivityTrackingModule"
+           type="Microsoft.AspNet.CorrelationActivity.ActivityTrackingModule, Microsoft.AspNet.CorrelationActivity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+           preCondition="integratedMode,managedHandler" xdt:Transform="Remove" xdt:Locator="Match(type)" />
+    </modules>
+  </system.webServer>
+</configuration>
