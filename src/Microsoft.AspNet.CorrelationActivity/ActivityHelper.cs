@@ -10,9 +10,9 @@ namespace Microsoft.AspNet.CorrelationActivity
     internal static class ActivityHelper
     {
         public const string AspNetListenerName = "Microsoft.AspNet.Correlation";
-        public const string AspNetActivityName = "Microsoft.AspNet.Activity";
-        public const string AspNetActivityStartName = "Microsoft.AspNet.Activity.Start";
-        public const string AspNetExceptionActivityName = "Microsoft.AspNet.Activity.Exception";
+        public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
+        public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
+        public const string AspNetExceptionActivityName = "Microsoft.AspNet.HttpReqIn.Exception";
 
         public const string ActivityKey = "__AspnetActivity__";
         private static DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
@@ -26,8 +26,7 @@ namespace Microsoft.AspNet.CorrelationActivity
         /// <returns>If it returns an activity, the dev is responsible for stopping it</returns>
         public static Activity RestoreCurrentActivity(HttpContextBase context)
         {
-            if(Activity.Current != null || context == null ||
-               context.Items[ActivityKey] as Activity == null)
+            if(Activity.Current != null || context.Items[ActivityKey] as Activity == null)
             {
                 return null;
             }
@@ -37,6 +36,7 @@ namespace Microsoft.AspNet.CorrelationActivity
             var root = (Activity)context.Items[ActivityKey];
             var childActivity = new Activity(root.OperationName);
             childActivity.SetParentId(root.Id);
+            childActivity.SetStartTime(root.StartTimeUtc);
             foreach(var item in root.Baggage)
             {
                 childActivity.AddBaggage(item.Key, item.Value);
@@ -46,16 +46,11 @@ namespace Microsoft.AspNet.CorrelationActivity
             return childActivity;
         }
 
-        /// <summary>
-        /// To stop the activity that dev gets from RestoreCurrentActivity
-        /// </summary>
-        /// <param name="activity"></param>
-        /// <param name="context"></param>
-        public static void StopAspNetActivity(Activity activity, object context)
+        public static void StopAspNetActivity(Activity activity)
         {
             if (activity != null)
             {
-                s_aspNetListener.StopActivity(activity, context);
+                s_aspNetListener.StopActivity(activity, new { });
             }
         }
 
@@ -67,28 +62,29 @@ namespace Microsoft.AspNet.CorrelationActivity
                 rootActivity = new Activity(ActivityHelper.AspNetActivityName);
 
                 rootActivity.RestoreActivityInfoFromRequestHeaders(context.Request.Headers);
-                StartAspNetActivity(rootActivity, new { Context = context });
+                StartAspNetActivity(rootActivity);
                 SaveCurrentActivity(context, rootActivity);
             }
 
             return rootActivity;
         }
 
-        public static void TriggerAspNetExceptionActivity(Exception ex)
+        public static void WriteExceptionToDiagnosticSource(HttpContextBase context)
         {
             if(s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetExceptionActivityName))
             {
-                s_aspNetListener.Write(AspNetExceptionActivityName, new { ActivityException = ex });
+                s_aspNetListener.Write(AspNetExceptionActivityName, 
+                    new { Context = context, ActivityException = context.Server.GetLastError() });
             }
         }
 
-        private static void StartAspNetActivity(Activity activity, object context)
+        private static void StartAspNetActivity(Activity activity)
         {
-            if (s_aspNetListener.IsEnabled(AspNetActivityName, activity, context))
+            if (s_aspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
             {
                 if (s_aspNetListener.IsEnabled(AspNetActivityStartName))
                 {
-                    s_aspNetListener.StartActivity(activity, context);
+                    s_aspNetListener.StartActivity(activity, new { });
                 }
                 else
                 {

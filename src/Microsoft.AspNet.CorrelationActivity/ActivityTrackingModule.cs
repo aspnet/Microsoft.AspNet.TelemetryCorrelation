@@ -31,12 +31,9 @@ namespace Microsoft.AspNet.CorrelationActivity
         {
             get
             {
-                HttpContextWrapper context = null;
-                if (HttpContext.Current != null)
-                {
-                    context = new HttpContextWrapper(HttpContext.Current);
-                }
-                return context;
+                Debug.Assert(HttpContext.Current != null);
+                
+                return new HttpContextWrapper(HttpContext.Current);
             }
         }
 
@@ -52,25 +49,30 @@ namespace Microsoft.AspNet.CorrelationActivity
 
         private void Application_PostRequestHandlerExecute(object sender, EventArgs e)
         {
-            ActivityHelper.StopAspNetActivity(_rootActivityInHandlerExecution, new { Context = CurrentHttpContext });
+            if(_rootActivityInHandlerExecution != null)
+            {
+                _rootActivityInHandlerExecution.Stop();
+            }
         }
 
         private void Application_Error(object sender, EventArgs e)
         {
             // In case unhandled exception is thrown before PreRequestHandlerExecute
-            var currentActivity = ActivityHelper.RestoreCurrentActivity(CurrentHttpContext);
-            var app = (HttpApplication)sender;
-            ActivityHelper.TriggerAspNetExceptionActivity(app.Server.GetLastError());
-            ActivityHelper.StopAspNetActivity(currentActivity, new { Context = CurrentHttpContext });
+            var currentActivity = ActivityHelper.RestoreCurrentActivity(CurrentHttpContext);            
+            ActivityHelper.WriteExceptionToDiagnosticSource(CurrentHttpContext);
+            ActivityHelper.StopAspNetActivity(currentActivity);
 
             // In case unhandled exception is thrown during handler executing, which won't
             // trigger PostRequestHandlerExecut event.
-            ActivityHelper.StopAspNetActivity(_rootActivityInHandlerExecution, new { Context = CurrentHttpContext });
+            if (_rootActivityInHandlerExecution != null)
+            {
+                _rootActivityInHandlerExecution.Stop();
+            }
         }
 
         private void Application_EndRequest(object sender, EventArgs e)
         {
-            ActivityHelper.StopAspNetActivity(_activity, new { Context = CurrentHttpContext });
+            ActivityHelper.StopAspNetActivity(_activity);
         }        
     }
 }

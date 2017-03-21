@@ -47,13 +47,6 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         }
 
         [Fact]
-        public void Should_Not_Restore_If_HttpContext_Is_Not_Available()
-        {
-            var restoredActivity = ActivityHelper.RestoreCurrentActivity(null);
-            Assert.Null(restoredActivity);
-        }
-
-        [Fact]
         public void Should_Not_Restore_If_Root_Activity_Is_Not_In_HttpContext()
         {
             var context = CreateHttpContext();
@@ -91,7 +84,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
-            ActivityHelper.StopAspNetActivity(rootActivity, null);
+            ActivityHelper.StopAspNetActivity(rootActivity);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -104,7 +97,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             rootActivity.Start();
             Thread.Sleep(100);
             EnableAspNetListenerOnly();
-            ActivityHelper.StopAspNetActivity(rootActivity, null);
+            ActivityHelper.StopAspNetActivity(rootActivity);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -135,7 +128,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         public void Can_Create_RootActivity_And_Restore_Info_From_Request_Header()
         {
             var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b2cab6.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, _baggageInHeader);
 
             var context = CreateHttpContext(requestHeaders);
@@ -143,7 +136,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.NotNull(rootActivity);
-            Assert.True(rootActivity.ParentId == "/aba2f1e978b2cab6.1");
+            Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1");
             var expectedBaggage = _baggageItems.OrderBy(item => item.Value);
             var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
             Assert.Equal(expectedBaggage, actualBaggage);
@@ -179,7 +172,9 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             var activityTrigger = false;
             Action<KeyValuePair<string, object>> onNext = kvp => activityTrigger = true;
             EnableAspNetListenerAndActivity(onNext);
-            ActivityHelper.TriggerAspNetExceptionActivity(new Exception("test"));
+            var context = CreateHttpContext(null, new Exception("test"));
+
+            ActivityHelper.WriteExceptionToDiagnosticSource(context);
 
             Assert.True(!activityTrigger);
         }
@@ -191,7 +186,9 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             Action<KeyValuePair<string, object>> onNext = kvp => loggedContext = kvp.Value.GetProperty("ActivityException");
             EnableAspNetListenerAndActivity(onNext, ActivityHelper.AspNetExceptionActivityName);
             var exception = new Exception("test");
-            ActivityHelper.TriggerAspNetExceptionActivity(exception);
+            var context = CreateHttpContext(null, exception);
+
+            ActivityHelper.WriteExceptionToDiagnosticSource(context);
 
             Assert.Same(exception, loggedContext);
         }
@@ -206,9 +203,9 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             return activity;
         }
 
-        private HttpContextBase CreateHttpContext(NameValueCollection requestHeaders = null)
+        private HttpContextBase CreateHttpContext(NameValueCollection requestHeaders = null, Exception error = null)
         {
-            var context = new TestHttpContext();
+            var context = new TestHttpContext(error);
 
             if (requestHeaders != null)
             {
@@ -289,11 +286,37 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
         }
 
+        private class TestHttpServerUtility : HttpServerUtilityBase
+        {
+            HttpContextBase _context;
+
+            public TestHttpServerUtility(HttpContextBase context)
+            {
+                _context = context;
+            }
+
+            public override Exception GetLastError()
+            {
+                return _context.Error;
+            }
+        }
+
         private class TestHttpContext : HttpContextBase
         {
-            HttpRequestBase _request = new TestHttpRequest();
-            HttpResponseBase _response = new TestHttpResponse();
-            Hashtable _items = new Hashtable();
+            HttpRequestBase _request;
+            HttpResponseBase _response;
+            HttpServerUtilityBase _server;
+            Hashtable _items;
+            Exception _error;
+
+            public TestHttpContext(Exception error = null)
+            {
+                _request = new TestHttpRequest();
+                _response = new TestHttpResponse();
+                _server = new TestHttpServerUtility(this);
+                _items = new Hashtable();
+                _error = error;
+            }
 
             public override HttpRequestBase Request
             {
@@ -308,6 +331,22 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
                 get
                 {
                     return _items;
+                }
+            }
+
+            public override Exception Error
+            {
+                get
+                {
+                    return _error;
+                }
+            }
+
+            public override HttpServerUtilityBase Server
+            {
+                get
+                {
+                    return _server;
                 }
             }
         }

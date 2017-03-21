@@ -30,12 +30,12 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b11111.1");
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b22222.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b22222.1");
 
             activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
 
-            Assert.Equal("/aba2f1e978b11111.1", activity.ParentId);
+            Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             Assert.Empty(activity.Baggage);
         }
 
@@ -57,12 +57,12 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b11111.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789");
 
             activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
 
-            Assert.Equal("/aba2f1e978b11111.1", activity.ParentId);
+            Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
             baggageItems.Add(new KeyValuePair<string, string>("key1", "123"));
             baggageItems.Add(new KeyValuePair<string, string>("key2", "456"));
@@ -77,14 +77,14 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b11111.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key4=abc,key5=def");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key6=xyz");
 
             activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
 
-            Assert.Equal("/aba2f1e978b11111.1", activity.ParentId);
+            Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
             baggageItems.Add(new KeyValuePair<string, string>("key1", "123"));
             baggageItems.Add(new KeyValuePair<string, string>("key2", "456"));
@@ -102,14 +102,14 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "/aba2f1e978b11111.1");
+            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key4=abc;key5=def");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key6????xyz");
 
             activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
 
-            Assert.Equal("/aba2f1e978b11111.1", activity.ParentId);
+            Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
             baggageItems.Add(new KeyValuePair<string, string>("key1", "123"));
             baggageItems.Add(new KeyValuePair<string, string>("key2", "456"));
