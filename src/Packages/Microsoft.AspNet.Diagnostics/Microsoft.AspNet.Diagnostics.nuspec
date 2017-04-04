@@ -2,18 +2,18 @@
 <package>
     <metadata>
         <id>$NuGetPackageId$</id>
-        <title>Microsoft.AspNet.CorrelationActivity</title>
+        <title>Microsoft.AspNet.Diagnostics</title>
         <version>$NuGetPackageVersion$</version>
         <authors>Microsoft</authors>
         <owners>Microsoft</owners>
         <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
-        <description>Provides a module to support correlation activity usage in asp.net applications.</description>
-        <summary>Provides a module to support correlation activity usage in asp.net applications.</summary>
+        <description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</description>
+        <summary>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</summary>
         <language>en-US</language>
         <projectUrl>http://www.asp.net/</projectUrl>
         <licenseUrl>http://www.microsoft.com/web/webpi/eula/net_library_eula_ENU.htm</licenseUrl>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
-        <tags>DiagnosticSource Correlation Activity ASP.NET</tags>
+        <tags>Diagnostics DiagnosticSource Correlation Activity ASP.NET</tags>
         <dependencies>
             <dependency id="System.Diagnostics.DiagnosticSource" version="$DiagnosticSourceNuGetPackageVersion$" />
         </dependencies>

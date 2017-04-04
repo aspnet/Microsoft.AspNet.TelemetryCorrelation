@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.CorrelationActivity.sln))\tools\Microsoft.AspNet.CorrelationActivity.settings.targets" />
+    <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.Diagnostics.sln))\tools\Microsoft.AspNet.Diagnostics.settings.targets" />
     <PropertyGroup>
         <AssemblyName>$(MSBuildProjectName)</AssemblyName>
         <NuGetPackageId>$(MSBuildProjectName)</NuGetPackageId>
@@ -9,19 +9,19 @@
     <ItemGroup>
         <NuGetContent Include="$(AssemblyName).dll">
             <Source>$(AssemblyPath)</Source>
-            <Destination>lib\net46</Destination>
+            <Destination>lib\net45</Destination>
         </NuGetContent>
         <NuGetContent Include="$(AssemblyName).xml">
             <Source>$(OutputPath)</Source>
-            <Destination>lib\net46</Destination>
+            <Destination>lib\net45</Destination>
         </NuGetContent>
         <NuGetContent Include="$(AssemblyName).pdb" Condition="'$(NuGetPackSymbols)' == 'true'">
             <Source>$(OutputPath)</Source>
-            <Destination>lib\net46</Destination>
+            <Destination>lib\net45</Destination>
         </NuGetContent>
         <NuGetContentProject Include="$(RepositoryRoot)\src\$(MSBuildProjectName)\$(MSBuildProjectName).csproj" Condition="'$(NuGetPackSymbols)' == 'true'" />
         <NuGetContent Include="content\net46\*">
-            <Destination>content\net46</Destination>
+            <Destination>content\net45</Destination>
         </NuGetContent>
     </ItemGroup>
     <Import Project="$(RepositoryRoot)Tools\NuGetProj.targets"/>

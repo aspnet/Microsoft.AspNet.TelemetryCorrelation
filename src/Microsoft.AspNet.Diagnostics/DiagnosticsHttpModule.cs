@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 
-namespace Microsoft.AspNet.CorrelationActivity
+namespace Microsoft.AspNet.Diagnostics
 {
-    class ActivityTrackingModule : IHttpModule
+    class DiagnosticsHttpModule : IHttpModule
     {   
         private Activity _activity;
         private Activity _rootActivityInHandlerExecution;
@@ -33,16 +28,24 @@ namespace Microsoft.AspNet.CorrelationActivity
             get
             {
                 Debug.Assert(HttpContext.Current != null);
-                
+
                 return new HttpContextWrapper(HttpContext.Current);
             }
         }
 
         private void Application_BeginRequest(object sender, EventArgs e)
         {
+            AspNetDiagnosticsEventSource.Log.RequestTrackingModule("Application_BeginRequest");
+
             // if some other module creates the activity, we do nothing.
-            if(Activity.Current != null || HttpContext.Current.Items[ActivityHelper.ActivityKey] != null)
+            if (Activity.Current != null)
             {
+                if (HttpContext.Current.Items[ActivityHelper.ActivityKey] == null)
+                {
+                    // TODO: comment
+                    HttpContext.Current.Items.Add(ActivityHelper.ActivityKey, Activity.Current);
+                }
+
                 _shouldCreateRootActivity = false;
                 return;
             }
@@ -51,6 +54,8 @@ namespace Microsoft.AspNet.CorrelationActivity
 
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
+            AspNetDiagnosticsEventSource.Log.RequestTrackingModule("Application_PreRequestHandlerExecute");
+
             if (_shouldCreateRootActivity)
             {
                 _rootActivityInHandlerExecution = ActivityHelper.RestoreCurrentActivity(CurrentHttpContext);
@@ -59,23 +64,35 @@ namespace Microsoft.AspNet.CorrelationActivity
 
         private void Application_PostRequestHandlerExecute(object sender, EventArgs e)
         {
-            if(_shouldCreateRootActivity && _rootActivityInHandlerExecution != null)
+            AspNetDiagnosticsEventSource.Log.RequestTrackingModule("Application_PostRequestHandlerExecute");
+
+            if (_shouldCreateRootActivity && _rootActivityInHandlerExecution != null)
             {
                 _rootActivityInHandlerExecution.Stop();
+                AspNetDiagnosticsEventSource.Log.ActivityStopped(_rootActivityInHandlerExecution.Id);
             }
         }
 
         private void Application_Error(object sender, EventArgs e)
         {
+            AspNetDiagnosticsEventSource.Log.RequestTrackingModule("Application_Error");
+
+            if (Activity.Current == null && HttpContext.Current.Items[ActivityHelper.ActivityKey] == null)
+            {
+                // Exception happened before BeginRequest
+                _activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
+            }
+
             if (_shouldCreateRootActivity)
             {
                 // In case unhandled exception is thrown before PreRequestHandlerExecute
                 var currentActivity = ActivityHelper.RestoreCurrentActivity(CurrentHttpContext);
+
                 ActivityHelper.WriteExceptionToDiagnosticSource(CurrentHttpContext);
                 ActivityHelper.StopAspNetActivity(currentActivity);
 
                 // In case unhandled exception is thrown during handler executing, which won't
-                // trigger PostRequestHandlerExecut event.
+                // trigger PostRequestHandlerExecute event.
                 if (_rootActivityInHandlerExecution != null)
                 {
                     _rootActivityInHandlerExecution.Stop();
@@ -85,7 +102,8 @@ namespace Microsoft.AspNet.CorrelationActivity
 
         private void Application_EndRequest(object sender, EventArgs e)
         {
-            if(_shouldCreateRootActivity)
+            AspNetDiagnosticsEventSource.Log.RequestTrackingModule("Application_EndRequest");
+            if (_shouldCreateRootActivity)
             {
                 ActivityHelper.StopAspNetActivity(_activity);
             }
