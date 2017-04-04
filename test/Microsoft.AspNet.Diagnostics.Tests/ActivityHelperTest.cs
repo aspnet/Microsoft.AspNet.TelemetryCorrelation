@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Xunit;
 
-namespace Microsoft.AspNet.CorrelationActivity.Tests
+namespace Microsoft.AspNet.Diagnostics.Tests
 {
     public class ActivityHelperTest
     {
@@ -184,7 +184,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
         {
             object loggedContext = null;
             Action<KeyValuePair<string, object>> onNext = kvp => loggedContext = kvp.Value.GetProperty("ActivityException");
-            EnableAspNetListenerAndActivity(onNext, ActivityHelper.AspNetExceptionActivityName);
+            EnableAspNetListenerAndActivity(onNext, ActivityHelper.AspNetExceptionName);
             var exception = new Exception("test");
             var context = CreateHttpContext(null, exception);
 

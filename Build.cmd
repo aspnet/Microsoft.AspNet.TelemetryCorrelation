@@ -15,7 +15,7 @@ if not exist %MSBuild% (
   goto BuildFail
 )
 
-%MSBuild% "%~dp0\Microsoft.AspNet.CorrelationActivity.msbuild" %logOptions% /v:minimal /maxcpucount /nodeReuse:false %*
+%MSBuild% "%~dp0\Microsoft.AspNet.Diagnostics.msbuild" %logOptions% /v:minimal /maxcpucount /nodeReuse:false %*
 if %ERRORLEVEL% neq 0 goto BuildFail
 goto BuildSuccess
 

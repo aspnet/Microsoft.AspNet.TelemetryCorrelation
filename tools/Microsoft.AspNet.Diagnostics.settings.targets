@@ -17,7 +17,7 @@
     <!-- Default properties -->
 
     <PropertyGroup>
-        <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Microsoft.AspNet.CorrelationActivity.sln))\</RepositoryRoot>
+        <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Microsoft.AspNet.Diagnostics.sln))\</RepositoryRoot>
     </PropertyGroup>
 
     <PropertyGroup Label="Common Configuration">
@@ -40,7 +40,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.CorrelationActivity.targets</CustomAfterMicrosoftCommonTargets>
+        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.Diagnostics.targets</CustomAfterMicrosoftCommonTargets>
         <CustomAfterNuGetProjTargets>$(CustomAfterMicrosoftCommonTargets)</CustomAfterNuGetProjTargets>
     </PropertyGroup>
 </Project>

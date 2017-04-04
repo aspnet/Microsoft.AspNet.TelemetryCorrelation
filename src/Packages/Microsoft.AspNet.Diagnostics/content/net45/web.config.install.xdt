@@ -8,8 +8,8 @@
 
   <system.webServer>
     <modules>
-      <add name="ActivityTrackingModule"
-           type="Microsoft.AspNet.CorrelationActivity.ActivityTrackingModule, Microsoft.AspNet.CorrelationActivity, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
+      <add name="DiagnosticsHttpModule"
+           type="Microsoft.AspNet.Diagnostics.DiagnosticsHttpModule, Microsoft.AspNet.Diagnostics, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35"
            preCondition="integratedMode,managedHandler" xdt:Transform="Insert" />
     </modules>
   </system.webServer>

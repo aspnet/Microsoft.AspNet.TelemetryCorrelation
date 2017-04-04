@@ -1,18 +1,17 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Web;
 
-namespace Microsoft.AspNet.CorrelationActivity
+namespace Microsoft.AspNet.Diagnostics
 {
     /// <summary>
     /// Activity helper class
     /// </summary>
     internal static class ActivityHelper
     {
-        public const string AspNetListenerName = "Microsoft.AspNet.Correlation";
+        public const string AspNetListenerName = "Microsoft.AspNet.Diagnostics";
         public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
-        public const string AspNetExceptionActivityName = "Microsoft.AspNet.HttpReqIn.Exception";
+        public const string AspNetExceptionName = "Microsoft.AspNet.HttpReqIn.Exception";
 
         public const string ActivityKey = "__AspnetActivity__";
         private static DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
@@ -43,6 +42,7 @@ namespace Microsoft.AspNet.CorrelationActivity
             }
             childActivity.Start();
 
+            AspNetDiagnosticsEventSource.Log.ActivityStarted(childActivity.Id);
             return childActivity;
         }
 
@@ -51,6 +51,7 @@ namespace Microsoft.AspNet.CorrelationActivity
             if (activity != null)
             {
                 s_aspNetListener.StopActivity(activity, new { });
+                AspNetDiagnosticsEventSource.Log.ActivityStopped(activity.Id);
             }
         }
 
@@ -61,9 +62,10 @@ namespace Microsoft.AspNet.CorrelationActivity
             {
                 rootActivity = new Activity(ActivityHelper.AspNetActivityName);
 
-                rootActivity.RestoreActivityInfoFromRequestHeaders(context.Request.Headers);
+                rootActivity.TryParse(context.Request.Headers);
                 StartAspNetActivity(rootActivity);
                 SaveCurrentActivity(context, rootActivity);
+                AspNetDiagnosticsEventSource.Log.ActivityStarted(rootActivity.Id);
             }
 
             return rootActivity;
@@ -71,9 +73,9 @@ namespace Microsoft.AspNet.CorrelationActivity
 
         public static void WriteExceptionToDiagnosticSource(HttpContextBase context)
         {
-            if(s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetExceptionActivityName))
+            if(s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetExceptionName))
             {
-                s_aspNetListener.Write(AspNetExceptionActivityName, 
+                s_aspNetListener.Write(AspNetExceptionName, 
                     new { Context = context, ActivityException = context.Server.GetLastError() });
             }
         }

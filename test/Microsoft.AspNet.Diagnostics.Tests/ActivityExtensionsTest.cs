@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.AspNet.CorrelationActivity.Tests
+namespace Microsoft.AspNet.Diagnostics.Tests
 {
     public class ActivityExtensionsTest
     {
@@ -19,7 +16,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.False(activity.TryParse(requestHeaders));
 
             Assert.True(string.IsNullOrEmpty(activity.ParentId));
             Assert.Empty(activity.Baggage);
@@ -33,7 +30,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
             requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b22222.1");
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.True(activity.TryParse(requestHeaders));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             Assert.Empty(activity.Baggage);
@@ -46,9 +43,9 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             var requestHeaders = new NameValueCollection();
             requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "");
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.False(activity.TryParse(requestHeaders));
 
-            Assert.True(string.IsNullOrEmpty(activity.ParentId));
+            Assert.Null(activity.ParentId);
             Assert.Empty(activity.Baggage);
         }
 
@@ -60,7 +57,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789");
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.True(activity.TryParse(requestHeaders));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
@@ -82,7 +79,7 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key4=abc,key5=def");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key6=xyz");
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.True(activity.TryParse(requestHeaders));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
@@ -106,8 +103,9 @@ namespace Microsoft.AspNet.CorrelationActivity.Tests
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key4=abc;key5=def");
             requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key6????xyz");
+            requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, "key7=123=456");
 
-            activity.RestoreActivityInfoFromRequestHeaders(requestHeaders);
+            Assert.True(activity.TryParse(requestHeaders));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>();
