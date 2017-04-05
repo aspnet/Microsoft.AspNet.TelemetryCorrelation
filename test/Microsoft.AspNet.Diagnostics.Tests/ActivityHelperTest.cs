@@ -36,25 +36,6 @@ namespace Microsoft.AspNet.Diagnostics.Tests
 
         #region RestoreCurrentActivity tests
         [Fact]
-        public void Should_Not_Restore_If_ActivityCurrent_Is_Available()
-        {
-            var rootActivity = CreateActivity();
-            var context = CreateHttpContext();
-            rootActivity.Start();
-
-            var restoredActivity = ActivityHelper.RestoreCurrentActivity(context);
-            Assert.Null(restoredActivity);
-        }
-
-        [Fact]
-        public void Should_Not_Restore_If_Root_Activity_Is_Not_In_HttpContext()
-        {
-            var context = CreateHttpContext();
-            var restoredActivity = ActivityHelper.RestoreCurrentActivity(context);
-            Assert.Null(restoredActivity);
-        }
-
-        [Fact]
         public void Can_Restore_Activity()
         {
             var rootActivity = CreateActivity();
@@ -81,26 +62,63 @@ namespace Microsoft.AspNet.Diagnostics.Tests
         [Fact]
         public void Can_Stop_Activity_Without_AspNetListener_Enabled()
         {
+            var context = CreateHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
-            ActivityHelper.StopAspNetActivity(rootActivity);
+            ActivityHelper.StopAspNetActivity(rootActivity, context);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
 
         [Fact]
         public void Can_Stop_Activity_With_AspNetListener_Enabled()
         {
+            var context = CreateHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
             EnableAspNetListenerOnly();
-            ActivityHelper.StopAspNetActivity(rootActivity);
+            ActivityHelper.StopAspNetActivity(rootActivity, context);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
+        }
+
+
+        [Fact]
+        public void Can_Stop_Root_Activity_With_All_Children()
+        {
+            var context = CreateHttpContext();
+            var rootActivity = CreateActivity();
+            rootActivity.Start();
+            new Activity("child").Start();
+            new Activity("grandchild").Start();
+
+            ActivityHelper.StopAspNetActivity(rootActivity, context);
+
+            Assert.True(rootActivity.Duration != TimeSpan.Zero);
+            Assert.Null(rootActivity.Parent);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
+        }
+
+        [Fact]
+        public void Can_Stop_Child_Activity_With_All_Children()
+        {
+            var context = CreateHttpContext();
+            var rootActivity = CreateActivity();
+            rootActivity.Start();
+            var child = new Activity("child").Start();
+            new Activity("grandchild").Start();
+
+            ActivityHelper.StopAspNetActivity(child, context);
+
+            Assert.True(child.Duration != TimeSpan.Zero);
+            Assert.Equal(rootActivity, Activity.Current);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
         #endregion
 
@@ -119,6 +137,16 @@ namespace Microsoft.AspNet.Diagnostics.Tests
         {
             var context = CreateHttpContext();
             EnableAspNetListenerOnly();
+            var rootActivity = ActivityHelper.CreateRootActivity(context);
+
+            Assert.Null(rootActivity);
+        }
+
+        [Fact]
+        public void Should_Not_Create_RootActivity_If_AspNetActivity_Not_Enabled_With_Arguments()
+        {
+            var context = CreateHttpContext();
+            EnableAspNetListenerAndDisableActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.Null(rootActivity);
@@ -165,35 +193,6 @@ namespace Microsoft.AspNet.Diagnostics.Tests
         }
         #endregion
 
-        #region TriggerAspNetExceptionActivity tests
-        [Fact]
-        public void Should_Not_Trigger_AspNetExceptionActivity_If_AspNetExceptionActivity_Not_Enabled()
-        {
-            var activityTrigger = false;
-            Action<KeyValuePair<string, object>> onNext = kvp => activityTrigger = true;
-            EnableAspNetListenerAndActivity(onNext);
-            var context = CreateHttpContext(null, new Exception("test"));
-
-            ActivityHelper.WriteExceptionToDiagnosticSource(context);
-
-            Assert.True(!activityTrigger);
-        }
-
-        [Fact]
-        public void Can_Trigger_AspNetExceptionActivity_If_AspNetExceptionActivity_Enabled()
-        {
-            object loggedContext = null;
-            Action<KeyValuePair<string, object>> onNext = kvp => loggedContext = kvp.Value.GetProperty("ActivityException");
-            EnableAspNetListenerAndActivity(onNext, ActivityHelper.AspNetExceptionName);
-            var exception = new Exception("test");
-            var context = CreateHttpContext(null, exception);
-
-            ActivityHelper.WriteExceptionToDiagnosticSource(context);
-
-            Assert.Same(exception, loggedContext);
-        }
-        #endregion
-
         #region Helper methods               
         private Activity CreateActivity()
         {
@@ -213,6 +212,20 @@ namespace Microsoft.AspNet.Diagnostics.Tests
             }
 
             return context;
+        }
+
+        private void EnableAspNetListenerAndDisableActivity(Action<KeyValuePair<string, object>> onNext = null,
+            string ActivityName = ActivityHelper.AspNetActivityName)
+        {
+            DiagnosticListener.AllListeners.Subscribe(listener =>
+            {
+                // if AspNetListener has subscription, then it is enabled
+                if (listener.Name == ActivityHelper.AspNetListenerName)
+                {
+                    listener.Subscribe(new TestDiagnosticListener(onNext),
+                        (name, arg1, arg2) => name == ActivityName && arg1 == null);
+                }
+            });
         }
 
         private void EnableAspNetListenerAndActivity(Action<KeyValuePair<string, object>> onNext = null, 

@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.Tracing;
+using System.Web.UI.WebControls;
 
 namespace Microsoft.AspNet.Diagnostics
 {
@@ -13,8 +14,8 @@ namespace Microsoft.AspNet.Diagnostics
         /// </summary>
         public static readonly AspNetDiagnosticsEventSource Log = new AspNetDiagnosticsEventSource();
 
-        [Event(1, Message = "RequestTrackingModule: {0}", Level = EventLevel.Informational)]
-        public void RequestTrackingModule(string callback)
+        [Event(1, Message = "DiagnosticsHttpModule.{0}", Level = EventLevel.Informational)]
+        public void DiagnosticsHttpModule(string callback)
         {
             WriteEvent(1, callback);
         }
@@ -25,10 +26,10 @@ namespace Microsoft.AspNet.Diagnostics
             WriteEvent(3, id);
         }
 
-        [Event(4, Message = "Activity stopped, Id='{0}'", Level = EventLevel.Informational)]
-        public void ActivityStopped(string id)
+        [Event(4, Message = "Activity stopped, Id='{0}', lost {1}", Level = EventLevel.Informational)]
+        public void ActivityStopped(string id, bool lost = false)
         {
-            WriteEvent(4, id);
+            WriteEvent(4, id, lost);
         }
 
         [Event(5, Message = "Failed to parse header {0}, value: '{1}'", Level = EventLevel.Error)]
