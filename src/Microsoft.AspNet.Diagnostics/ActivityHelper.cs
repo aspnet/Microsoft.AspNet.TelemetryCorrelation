@@ -11,6 +11,7 @@ namespace Microsoft.AspNet.Diagnostics
         public const string AspNetListenerName = "Microsoft.AspNet.Diagnostics";
         public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
+        public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.Lost.Stop";
         public const string AspNetExceptionName = "Microsoft.AspNet.HttpReqIn.Exception";
 
         public const string ActivityKey = "__AspnetActivity__";
@@ -22,13 +23,10 @@ namespace Microsoft.AspNet.Diagnostics
         /// This method is intended to restore the current activity in order to correlate the child
         /// activities with the root activity of the request.
         /// </summary>
-        /// <returns>If it returns an activity, the dev is responsible for stopping it</returns>
+        /// <returns>If it returns an activity, it will be silently stopped with the parent activity</returns>
         public static Activity RestoreCurrentActivity(HttpContextBase context)
         {
-            if(Activity.Current != null || context.Items[ActivityKey] as Activity == null)
-            {
-                return null;
-            }
+            Debug.Assert(Activity.Current == null && context.Items[ActivityKey] is Activity);
 
             // workaround to restore the root activity, because we don't
             // have a way to change the Activity.Current
@@ -46,41 +44,57 @@ namespace Microsoft.AspNet.Diagnostics
             return childActivity;
         }
 
-        public static void StopAspNetActivity(Activity activity)
+        public static bool StopAspNetActivity(Activity activity, HttpContextBase context)
+        {
+            if (activity != null && Activity.Current != null)
+            {
+                // silently stop all child activities before activity
+                while (Activity.Current != activity && Activity.Current != null)
+                {
+                    Activity.Current.Stop();
+                }
+
+                // if activity is in the stack, stop it with Stop event
+                if (Activity.Current != null)
+                {
+                    s_aspNetListener.StopActivity(Activity.Current, new { });
+                    RemoveCurrentActivity(context);
+                    AspNetDiagnosticsEventSource.Log.ActivityStopped(activity.Id);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static void StopLostActivity(Activity activity, HttpContextBase context)
         {
             if (activity != null)
             {
-                s_aspNetListener.StopActivity(activity, new { });
-                AspNetDiagnosticsEventSource.Log.ActivityStopped(activity.Id);
+                s_aspNetListener.Write(AspNetActivityLostStopName, new { activity });
+                RemoveCurrentActivity(context);
+                AspNetDiagnosticsEventSource.Log.ActivityStopped(activity.Id, true);
             }
         }
 
         public static Activity CreateRootActivity(HttpContextBase context)
         {
-            Activity rootActivity = null;
             if (s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetActivityName))
             {
-                rootActivity = new Activity(ActivityHelper.AspNetActivityName);
+                var rootActivity = new Activity(ActivityHelper.AspNetActivityName);
 
                 rootActivity.TryParse(context.Request.Headers);
-                StartAspNetActivity(rootActivity);
-                SaveCurrentActivity(context, rootActivity);
-                AspNetDiagnosticsEventSource.Log.ActivityStarted(rootActivity.Id);
+                if (StartAspNetActivity(rootActivity))
+                {
+                    SaveCurrentActivity(context, rootActivity);
+                    AspNetDiagnosticsEventSource.Log.ActivityStarted(rootActivity.Id);
+                    return rootActivity;
+                }
             }
-
-            return rootActivity;
+            return null;
         }
 
-        public static void WriteExceptionToDiagnosticSource(HttpContextBase context)
-        {
-            if(s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetExceptionName))
-            {
-                s_aspNetListener.Write(AspNetExceptionName, 
-                    new { Context = context, ActivityException = context.Server.GetLastError() });
-            }
-        }
-
-        private static void StartAspNetActivity(Activity activity)
+        private static bool StartAspNetActivity(Activity activity)
         {
             if (s_aspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
             {
@@ -92,7 +106,10 @@ namespace Microsoft.AspNet.Diagnostics
                 {
                     activity.Start();
                 }
+                return true;
             }
+
+            return false;
         }
 
         /// <summary>
@@ -103,9 +120,14 @@ namespace Microsoft.AspNet.Diagnostics
         {
             Debug.Assert(context != null);
             Debug.Assert(activity != null);
-            Debug.Assert(context.Items[ActivityKey] == null);
 
             context.Items[ActivityKey] = activity;
+        }
+
+        private static void RemoveCurrentActivity(HttpContextBase context)
+        {
+            Debug.Assert(context != null);
+            context.Items[ActivityKey] = null;
         }
     }
 }
