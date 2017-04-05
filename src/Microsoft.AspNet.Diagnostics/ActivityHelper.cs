@@ -11,8 +11,7 @@ namespace Microsoft.AspNet.Diagnostics
         public const string AspNetListenerName = "Microsoft.AspNet.Diagnostics";
         public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
-        public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.Lost.Stop";
-        public const string AspNetExceptionName = "Microsoft.AspNet.HttpReqIn.Exception";
+        public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.ActivityLost.Stop";
 
         public const string ActivityKey = "__AspnetActivity__";
         private static DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
