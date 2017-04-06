@@ -20,7 +20,7 @@
             <Destination>lib\net45</Destination>
         </NuGetContent>
         <NuGetContentProject Include="$(RepositoryRoot)\src\$(MSBuildProjectName)\$(MSBuildProjectName).csproj" Condition="'$(NuGetPackSymbols)' == 'true'" />
-        <NuGetContent Include="content\net46\*">
+        <NuGetContent Include="content\net45\*">
             <Destination>content\net45</Destination>
         </NuGetContent>
     </ItemGroup>
