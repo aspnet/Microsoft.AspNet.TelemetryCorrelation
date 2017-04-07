@@ -2,7 +2,7 @@
 <package>
     <metadata>
         <id>$NuGetPackageId$</id>
-        <title>Microsoft.AspNet.Diagnostics</title>
+        <title>Microsoft.AspNet.TelemetryCorrelation</title>
         <version>$NuGetPackageVersion$</version>
         <authors>Microsoft</authors>
         <owners>Microsoft</owners>

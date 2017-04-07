@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Web;
 
-namespace Microsoft.AspNet.Diagnostics
+namespace Microsoft.AspNet.TelemetryCorrelation
 {
-    class DiagnosticsHttpModule : IHttpModule
+    class TelemetryCorrelationHttpModule : IHttpModule
     {
         private Activity _activity;
         private bool _beginRequestWasCalled;
@@ -32,14 +32,14 @@ namespace Microsoft.AspNet.Diagnostics
 
         private void Application_BeginRequest(object sender, EventArgs e)
         {
-            AspNetDiagnosticsEventSource.Log.DiagnosticsHttpModule("Application_BeginRequest");
+            AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_BeginRequest");
             _activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
             _beginRequestWasCalled = true;
         }
 
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
-            AspNetDiagnosticsEventSource.Log.DiagnosticsHttpModule("Application_PreRequestHandlerExecute");
+            AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_PreRequestHandlerExecute");
             var context = CurrentHttpContext;
             if (Activity.Current == null && context.Items[ActivityHelper.ActivityKey] is Activity)
             {
@@ -49,7 +49,7 @@ namespace Microsoft.AspNet.Diagnostics
 
         private void Application_EndRequest(object sender, EventArgs e)
         {
-            AspNetDiagnosticsEventSource.Log.DiagnosticsHttpModule("Application_EndRequest");
+            AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_EndRequest");
 
             // EndRequest does it's best effort to notify that request has ended
             var context = CurrentHttpContext;

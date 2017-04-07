@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Xunit;
 
-namespace Microsoft.AspNet.Diagnostics.Tests
+namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
     public class ActivityHelperTest
     {

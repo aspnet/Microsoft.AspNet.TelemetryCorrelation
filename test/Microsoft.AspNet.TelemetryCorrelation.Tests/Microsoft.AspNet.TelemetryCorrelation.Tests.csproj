@@ -3,15 +3,15 @@
   <Import Project="..\..\packages\xunit.runner.msbuild.2.2.0\build\net452\xunit.runner.msbuild.props" Condition="Exists('..\..\packages\xunit.runner.msbuild.2.2.0\build\net452\xunit.runner.msbuild.props')" />
   <Import Project="..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props" Condition="Exists('..\..\packages\xunit.runner.visualstudio.2.2.0\build\net20\xunit.runner.visualstudio.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.Diagnostics.sln))\tools\Microsoft.AspNet.Diagnostics.settings.targets" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Microsoft.AspNet.TelemetryCorrelation.settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9FAE5C43-F56C-4D87-A23C-6D2D57B4ABED}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.AspNet.Diagnostics.Tests</RootNamespace>
-    <AssemblyName>Microsoft.AspNet.Diagnostics.Tests</AssemblyName>
+    <RootNamespace>Microsoft.AspNet.TelemetryCorrelation.Tests</RootNamespace>
+    <AssemblyName>Microsoft.AspNet.TelemetryCorrelation.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -84,9 +84,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Microsoft.AspNet.Diagnostics\Microsoft.AspNet.Diagnostics.csproj">
+    <ProjectReference Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\Microsoft.AspNet.TelemetryCorrelation.csproj">
       <Project>{4c8e592c-c532-4cf2-80ef-3bdd0d788d12}</Project>
-      <Name>Microsoft.AspNet.Diagnostics</Name>
+      <Name>Microsoft.AspNet.TelemetryCorrelation</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -106,7 +106,7 @@
   -->
   <UsingTask AssemblyFile="$(OutputPath)xunit.runner.msbuild.dll" TaskName="Xunit.Runner.MSBuild.xunit" />
   <Target Name="AfterBuild">
-    <xunit Assemblies="$(OutputPath)Microsoft.AspNet.Diagnostics.Tests.dll" />
+    <xunit Assemblies="$(OutputPath)Microsoft.AspNet.TelemetryCorrelation.Tests.dll" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

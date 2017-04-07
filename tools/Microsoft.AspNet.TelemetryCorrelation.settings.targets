@@ -11,13 +11,13 @@
     </PropertyGroup>
 
     <PropertyGroup Label="NuGet package dependencies">
-        <DiagnosticSourceNuGetPackageVersion>4.4.0-beta-25114-01</DiagnosticSourceNuGetPackageVersion>
+        <DiagnosticSourceNuGetPackageVersion>4.4.0-preview1-25204-01</DiagnosticSourceNuGetPackageVersion>
     </PropertyGroup>
 
     <!-- Default properties -->
 
     <PropertyGroup>
-        <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Microsoft.AspNet.Diagnostics.sln))\</RepositoryRoot>
+        <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Microsoft.AspNet.TelemetryCorrelation.sln))\</RepositoryRoot>
     </PropertyGroup>
 
     <PropertyGroup Label="Common Configuration">
@@ -40,7 +40,7 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.Diagnostics.targets</CustomAfterMicrosoftCommonTargets>
+        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.TelemetryCorrelation.targets</CustomAfterMicrosoftCommonTargets>
         <CustomAfterNuGetProjTargets>$(CustomAfterMicrosoftCommonTargets)</CustomAfterNuGetProjTargets>
     </PropertyGroup>
 </Project>

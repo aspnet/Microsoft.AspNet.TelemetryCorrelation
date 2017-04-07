@@ -6,7 +6,7 @@
     </PropertyGroup>
   
     <ItemGroup>
-      <NuGetInstallScripts Include="$(RepositoryRootEx)src\Packages\Microsoft.AspNet.Diagnostics\tools\*.ps1"/>
+      <NuGetInstallScripts Include="$(RepositoryRootEx)src\Packages\Microsoft.AspNet.TelemetryCorrelation\tools\*.ps1"/>
     </ItemGroup>
 
     <Target Name="CopyInstallScripts">

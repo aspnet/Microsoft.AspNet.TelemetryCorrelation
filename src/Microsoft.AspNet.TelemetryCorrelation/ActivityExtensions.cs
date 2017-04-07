@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 
-namespace Microsoft.AspNet.Diagnostics
+namespace Microsoft.AspNet.TelemetryCorrelation
 {
     /// <summary>
     /// Extensions of Activity class

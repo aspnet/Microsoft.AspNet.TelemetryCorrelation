@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.Diagnostics.sln))\tools\Microsoft.AspNet.Diagnostics.settings.targets" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Microsoft.AspNet.TelemetryCorrelation.settings.targets" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4C8E592C-C532-4CF2-80EF-3BDD0D788D12}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.AspNet.Diagnostics</RootNamespace>
-    <AssemblyName>Microsoft.AspNet.Diagnostics</AssemblyName>
+    <RootNamespace>Microsoft.AspNet.TelemetryCorrelation</RootNamespace>
+    <AssemblyName>Microsoft.AspNet.TelemetryCorrelation</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
@@ -55,7 +55,7 @@
   <ItemGroup>
     <Compile Include="ActivityExtensions.cs" />
     <Compile Include="ActivityHelper.cs" />
-    <Compile Include="DiagnosticsHttpModule.cs" />
+    <Compile Include="TelemetryCorrelationHttpModule.cs" />
     <Compile Include="AspNetDiagnosticsEventSource.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

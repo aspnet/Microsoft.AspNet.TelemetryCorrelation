@@ -1,11 +1,11 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="tools\Microsoft.AspNet.Diagnostics.settings.targets"/>
+  <Import Project="tools\Microsoft.AspNet.TelemetryCorrelation.settings.targets"/>
 
   <ItemGroup>
-    <AssemblyProject Include="src\Microsoft.AspNet.Diagnostics\Microsoft.AspNet.Diagnostics.csproj" />
+    <AssemblyProject Include="src\Microsoft.AspNet.TelemetryCorrelation\Microsoft.AspNet.TelemetryCorrelation.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <AssemblyProject Include="test\Microsoft.AspNet.Diagnostics.Tests\Microsoft.AspNet.Diagnostics.Tests.csproj" />
+    <AssemblyProject Include="test\Microsoft.AspNet.TelemetryCorrelation.Tests\Microsoft.AspNet.TelemetryCorrelation.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,5 +47,5 @@
     <Exec Command=".nuget\NuGet.exe restore" />
   </Target>
 
-  <Import Project="tools\Microsoft.AspNet.Diagnostics.targets" />
+  <Import Project="tools\Microsoft.AspNet.TelemetryCorrelation.targets" />
 </Project>

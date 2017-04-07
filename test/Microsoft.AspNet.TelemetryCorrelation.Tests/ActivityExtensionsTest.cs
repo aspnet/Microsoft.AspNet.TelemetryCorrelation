@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using Xunit;
 
-namespace Microsoft.AspNet.Diagnostics.Tests
+namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
     public class ActivityExtensionsTest
     {

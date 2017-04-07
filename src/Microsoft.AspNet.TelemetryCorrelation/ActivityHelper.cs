@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics;
 using System.Web;
 
-namespace Microsoft.AspNet.Diagnostics
+namespace Microsoft.AspNet.TelemetryCorrelation
 {
     /// <summary>
     /// Activity helper class
     /// </summary>
     internal static class ActivityHelper
     {
-        public const string AspNetListenerName = "Microsoft.AspNet.Diagnostics";
+        public const string AspNetListenerName = "Microsoft.AspNet.TelemetryCorrelation";
         public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
         public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.ActivityLost.Stop";
