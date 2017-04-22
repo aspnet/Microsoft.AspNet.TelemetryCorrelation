@@ -14,7 +14,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.ActivityLost.Stop";
 
         public const string ActivityKey = "__AspnetActivity__";
-        private static DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
+        private static readonly DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
 
         /// <summary>
         /// It's possible that a request is executed in both native threads and managed threads,
