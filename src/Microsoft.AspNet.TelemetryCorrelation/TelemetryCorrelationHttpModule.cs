@@ -6,9 +6,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 {
     class TelemetryCorrelationHttpModule : IHttpModule
     {
-        private Activity _activity;
-        private bool _beginRequestWasCalled;
-
+        private const string BeginCalledFlag = "Microsoft.AspNet.TelemetryCorrelation.BeginCalled";
         public void Dispose()
         {
         }
@@ -32,9 +30,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
         private void Application_BeginRequest(object sender, EventArgs e)
         {
+            var context = CurrentHttpContext;
             AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_BeginRequest");
-            _activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
-            _beginRequestWasCalled = true;
+            ActivityHelper.CreateRootActivity(CurrentHttpContext);
+            context.Items[BeginCalledFlag] = true;
         }
 
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
@@ -51,19 +50,21 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_EndRequest");
 
-            // EndRequest does it's best effort to notify that request has ended
             var context = CurrentHttpContext;
-            // try to stop activity if it's in the Current stack
-            if (!ActivityHelper.StopAspNetActivity(_activity, context))
+
+            // EndRequest does it's best effort to notify that request has ended
+            // BeginRequest has never been called
+            if (!context.Items.Contains(BeginCalledFlag))
             {
-                // Activity started by this module is not in the stack or BeginRequest has never been called
-                if (!_beginRequestWasCalled)
-                {
-                    // Activity has never been started
-                    _activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
-                    ActivityHelper.StopAspNetActivity(_activity, context);
-                }
-                else
+                // Activity has never been started
+                var activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
+                ActivityHelper.StopAspNetActivity(activity, context);
+            }
+            else
+            {
+                var activity = (Activity)context.Items[ActivityHelper.ActivityKey];
+                // try to stop activity if it's in the Current stack
+                if (!ActivityHelper.StopAspNetActivity(activity, context))
                 {
                     // Activity we created was lost, let's report it
                     var lostActivity = CurrentHttpContext.Items[ActivityHelper.ActivityKey] as Activity;
