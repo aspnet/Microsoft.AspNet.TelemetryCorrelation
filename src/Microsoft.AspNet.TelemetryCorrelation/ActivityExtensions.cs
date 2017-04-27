@@ -16,7 +16,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         internal const string CorrelationContextHeaderName = "Correlation-Context";
 
         /// <summary>
-        /// Reads Request-Id and Correaltion-Context headers and sets PArentId and Baggage on Activity.
+        /// Reads Request-Id and Correlation-Context headers and sets ParentId and Baggage on Activity.
         /// </summary>
         /// <param name="activity">Instance of activity that has not been started yet.</param>
         /// <param name="requestHeaders">Request headers collection.</param>
