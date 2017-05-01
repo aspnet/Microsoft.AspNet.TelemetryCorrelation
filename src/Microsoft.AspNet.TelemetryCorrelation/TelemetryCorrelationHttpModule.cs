@@ -67,10 +67,9 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 if (!ActivityHelper.StopAspNetActivity(activity, context))
                 {
                     // Activity we created was lost, let's report it
-                    var lostActivity = CurrentHttpContext.Items[ActivityHelper.ActivityKey] as Activity;
-                    if (lostActivity != null)
+                    if (activity != null)
                     {
-                        ActivityHelper.StopLostActivity(lostActivity, context);
+                        ActivityHelper.StopLostActivity(activity, context);
                     }
                 }
             }
