@@ -293,6 +293,20 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                     return _headers;
                 }
             }
+
+            public override UnvalidatedRequestValuesBase Unvalidated => new TestUnvalidatedRequestValues(_headers);
+        }
+
+        private class TestUnvalidatedRequestValues : UnvalidatedRequestValuesBase
+        {
+            NameValueCollection _headers = new NameValueCollection();
+
+            public TestUnvalidatedRequestValues(NameValueCollection headers)
+            {
+                this._headers = headers;
+            }
+
+            public override NameValueCollection Headers => _headers;
         }
 
         private class TestHttpResponse : HttpResponseBase
