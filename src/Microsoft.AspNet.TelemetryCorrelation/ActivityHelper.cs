@@ -23,13 +23,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// activities with the root activity of the request.
         /// </summary>
         /// <returns>If it returns an activity, it will be silently stopped with the parent activity</returns>
-        public static Activity RestoreCurrentActivity(HttpContextBase context)
+        public static Activity RestoreCurrentActivity(Activity root)
         {
-            Debug.Assert(Activity.Current == null && context.Items[ActivityKey] is Activity);
+            Debug.Assert(root != null);
 
             // workaround to restore the root activity, because we don't
             // have a way to change the Activity.Current
-            var root = (Activity)context.Items[ActivityKey];
             var childActivity = new Activity(root.OperationName);
             childActivity.SetParentId(root.Id);
             childActivity.SetStartTime(root.StartTimeUtc);

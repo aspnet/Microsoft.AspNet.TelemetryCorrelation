@@ -40,9 +40,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             AspNetDiagnosticsEventSource.Log.TelemetryCorrelationHttpModule("Application_PreRequestHandlerExecute");
             var context = CurrentHttpContext;
-            if (Activity.Current == null && context.Items[ActivityHelper.ActivityKey] is Activity)
+            var rootActivity = (Activity) context.Items[ActivityHelper.ActivityKey];
+            if (Activity.Current == null && rootActivity != null)
             {
-                ActivityHelper.RestoreCurrentActivity(context);
+                ActivityHelper.RestoreCurrentActivity(rootActivity);
             }
         }
 

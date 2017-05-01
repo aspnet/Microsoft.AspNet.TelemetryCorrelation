@@ -46,7 +46,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             ExecutionContext.SuppressFlow();
             Task.Run(() =>
             {
-                var restoredActivity = ActivityHelper.RestoreCurrentActivity(context);
+                var restoredActivity = ActivityHelper.RestoreCurrentActivity(rootActivity);
 
                 Assert.NotNull(restoredActivity);
                 Assert.True(rootActivity.Id == restoredActivity.ParentId);
