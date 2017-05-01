@@ -62,8 +62,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                             }
                             else
                             {
-                                AspNetTelemetryCorrelaitonEventSource.Log.HeaderParsingFailure(
-                                    $"{CorrelationContextHeaderName}: ", pair);
+                                AspNetTelemetryCorrelaitonEventSource.Log.HeaderParsingError(CorrelationContextHeaderName, pair);
                             }
                         }
                     }
