@@ -20,71 +20,70 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// </summary>
         /// <param name="activity">Instance of activity that has not been started yet.</param>
         /// <param name="requestHeaders">Request headers collection.</param>
-        public static bool TryParse(this Activity activity, NameValueCollection requestHeaders)
+        public static bool Extract(this Activity activity, NameValueCollection requestHeaders)
         {
             if (activity == null)
             {
-                throw new ArgumentNullException(nameof(activity));
+                AspNetTelemetryCorrelaitonEventSource.Log.ActvityExtractionError("activity is null");
+                return false;
             }
 
             if (activity.ParentId != null)
             {
-                throw new InvalidOperationException("ParentId is already set on activity");
+                AspNetTelemetryCorrelaitonEventSource.Log.ActvityExtractionError("ParentId is already set on activity");
+                return false;
             }
 
             if (activity.Id != null)
             {
-                throw new InvalidOperationException("Activity is already started");
+                AspNetTelemetryCorrelaitonEventSource.Log.ActvityExtractionError("Activity is already started");
+                return false;
             }
 
             var requestIDs = requestHeaders.GetValues(RequestIDHeaderName);
-            if (requestIDs != null && !string.IsNullOrEmpty(requestIDs[0]))
+            if (!string.IsNullOrEmpty(requestIDs?[0]))
             {
-                try
-                {
-                    // there may be several Request-Id header, but we only read the first one
-                    activity.SetParentId(requestIDs[0]);
+                // there may be several Request-Id header, but we only read the first one
+                activity.SetParentId(requestIDs[0]);
 
-                    // Header format - Correlation-Context: key1=value1, key2=value2 
-                    var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
-                    if (baggages != null)
+                // Header format - Correlation-Context: key1=value1, key2=value2 
+                var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
+                if (baggages != null)
+                {
+                    // there may be several Correlation-Context header 
+                    foreach (var item in baggages)
                     {
-                        // there may be several Correlation-Context header 
-                        foreach (var item in baggages)
+                        foreach (var pair in item.Split(','))
                         {
-                            foreach (var pair in item.Split(','))
+                            NameValueHeaderValue baggageItem;
+                            if (NameValueHeaderValue.TryParse(pair, out baggageItem))
                             {
-                                NameValueHeaderValue baggageItem;
-                                if (NameValueHeaderValue.TryParse(pair, out baggageItem))
-                                {
-                                    try
-                                    {
-                                        activity.AddBaggage(baggageItem.Name, baggageItem.Value);
-                                    }
-                                    catch (ArgumentException)
-                                    {
-                                        AspNetDiagnosticsEventSource.Log.HeaderParsingFailure(
-                                            $"{CorrelationContextHeaderName}: {baggageItem.Name}=", baggageItem.Value);
-                                    }
-                                }
-                                else
-                                {
-                                    AspNetDiagnosticsEventSource.Log.HeaderParsingFailure(
-                                        $"{CorrelationContextHeaderName}: ", pair);
-                                }
+                                activity.AddBaggage(baggageItem.Name, baggageItem.Value);
+                            }
+                            else
+                            {
+                                AspNetTelemetryCorrelaitonEventSource.Log.HeaderParsingFailure(
+                                    $"{CorrelationContextHeaderName}: ", pair);
                             }
                         }
                     }
-                }
-                catch (ArgumentException)
-                {
-                    AspNetDiagnosticsEventSource.Log.HeaderParsingFailure($"{RequestIDHeaderName}: ", requestIDs[0]);
                 }
 
                 return true;
             }
 
             return false;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        [Obsolete("Method is obsolete, use Extract method instead", true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static bool TryParse(this Activity activity, NameValueCollection requestHeaders)
+        {
+            return Extract(activity, requestHeaders);
         }
     }
 }
