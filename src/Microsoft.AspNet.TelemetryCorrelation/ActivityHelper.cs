@@ -18,7 +18,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
         /// <summary>
         /// It's possible that a request is executed in both native threads and managed threads,
-        /// in such case Activity.Current will be lost during native thread and managed thread swtich.
+        /// in such case Activity.Current will be lost during native thread and managed thread switch.
         /// This method is intended to restore the current activity in order to correlate the child
         /// activities with the root activity of the request.
         /// </summary>
