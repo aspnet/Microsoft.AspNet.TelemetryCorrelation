@@ -2,8 +2,17 @@
 <configuration xmlns:xdt="http://schemas.microsoft.com/XML-Document-Transform">
 
   <system.webServer xdt:Transform="InsertIfMissing">
-  </system.webServer>   
+  </system.webServer>
 
+  <!-- Search for system.web nodes:
+        - globally
+        - under location[@path='.']
+        - under location[count(@path)=0]
+        If any of above contains httpModules section - it will be reused. 
+        Otherwise it will be created under /configuration/system.web (globally)
+        
+        see https://github.com/Microsoft/ApplicationInsights-dotnet-server/blob/develop/Src/Web/Web.Nuget/Resources/web.config.install.xdt
+  -->
   <system.webServer xdt:Locator="XPath(//system.webServer[(count(parent::location) = 0) or (count(parent::location[@path != '.' and count(@path) != 0]) = 0)])">
     <modules xdt:Transform="InsertIfMissing">
       <remove name="TelemetryCorrelationHttpModule" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)"/>

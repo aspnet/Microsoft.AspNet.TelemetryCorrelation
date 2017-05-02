@@ -99,7 +99,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             const string OriginalWebConfigContent = @"
                 <configuration>
                     <system.webServer>
-                        <validation validateIntegratedModeConfiguration=""false"" />
                         <modules>
                            <remove name=""TelemetryCorrelationHttpModule"" />
                            <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""integratedMode,managedHandler""/> 
@@ -110,7 +109,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             const string ExpectedWebConfigContent = @"
                 <configuration>
                     <system.webServer>
-                        <validation validateIntegratedModeConfiguration=""false"" />
                         <modules>
                         </modules>
                     </system.webServer>
