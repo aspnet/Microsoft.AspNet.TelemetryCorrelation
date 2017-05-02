@@ -42,6 +42,9 @@
     <DelaySign>true</DelaySign>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Web.XmlTransform, Version=2.1.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.Web.Xdt.2.1.1\lib\net40\Microsoft.Web.XmlTransform.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.4.4.0-preview1-25214-03\lib\net45\System.Diagnostics.DiagnosticSource.dll</HintPath>
@@ -81,6 +84,8 @@
     <Compile Include="ActivityExtensionsTest.cs" />
     <Compile Include="ActivityHelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WebConfigWithLocaltionTagTransformTest.cs" />
+    <Compile Include="WebConfigTransformTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\Microsoft.AspNet.TelemetryCorrelation.csproj">
@@ -91,6 +96,12 @@
   <ItemGroup>
     <None Include="35MSSharedLib1024.snk" />
     <None Include="packages.config" />
+    <EmbeddedResource Include="..\..\src\Packages\Microsoft.AspNet.TelemetryCorrelation\content\net45\web.config.install.xdt">
+      <Link>Resources\web.config.install.xdt</Link>
+    </EmbeddedResource>
+    <EmbeddedResource Include="..\..\src\Packages\Microsoft.AspNet.TelemetryCorrelation\content\net45\web.config.uninstall.xdt">
+      <Link>Resources\web.config.uninstall.xdt</Link>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
