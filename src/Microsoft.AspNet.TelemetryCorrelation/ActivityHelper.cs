@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             return childActivity;
         }
 
-        public static bool StopAspNetActivity(Activity activity, HttpContextBase context)
+        public static bool StopAspNetActivity(Activity activity, HttpContext context)
         {
             if (activity != null && Activity.Current != null)
             {
@@ -65,7 +65,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             return false;
         }
 
-        public static void StopLostActivity(Activity activity, HttpContextBase context)
+        public static void StopLostActivity(Activity activity, HttpContext context)
         {
             if (activity != null)
             {
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             }
         }
 
-        public static Activity CreateRootActivity(HttpContextBase context)
+        public static Activity CreateRootActivity(HttpContext context)
         {
             if (s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetActivityName))
             {
@@ -114,7 +114,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// This should be called after the Activity starts
         /// and only for root activity of a request
         /// </summary>
-        private static void SaveCurrentActivity(HttpContextBase context, Activity activity)
+        private static void SaveCurrentActivity(HttpContext context, Activity activity)
         {
             Debug.Assert(context != null);
             Debug.Assert(activity != null);
@@ -122,7 +122,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             context.Items[ActivityKey] = activity;
         }
 
-        private static void RemoveCurrentActivity(HttpContextBase context)
+        private static void RemoveCurrentActivity(HttpContext context)
         {
             Debug.Assert(context != null);
             context.Items[ActivityKey] = null;

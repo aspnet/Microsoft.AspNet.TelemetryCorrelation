@@ -40,21 +40,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var rootActivity = CreateActivity();
             rootActivity.Start();
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             context.Items[ActivityHelper.ActivityKey] = rootActivity;
+            rootActivity.Stop();
 
-            ExecutionContext.SuppressFlow();
-            Task.Run(() =>
-            {
-                var restoredActivity = ActivityHelper.RestoreCurrentActivity(rootActivity);
+            var restoredActivity = ActivityHelper.RestoreCurrentActivity(rootActivity);
 
-                Assert.NotNull(restoredActivity);
-                Assert.True(rootActivity.Id == restoredActivity.ParentId);
-                Assert.True(!string.IsNullOrEmpty(restoredActivity.Id));
-                var expectedBaggage = _baggageItems.OrderBy(item => item.Value);
-                var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
-                Assert.Equal(expectedBaggage, actualBaggage);
-            }).Wait();
+            Assert.NotNull(restoredActivity);
+            Assert.True(rootActivity.Id == restoredActivity.ParentId);
+            Assert.True(!string.IsNullOrEmpty(restoredActivity.Id));
+            var expectedBaggage = _baggageItems.OrderBy(item => item.Value);
+            var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
+            Assert.Equal(expectedBaggage, actualBaggage);
         }
         #endregion
 
@@ -62,7 +59,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Stop_Activity_Without_AspNetListener_Enabled()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
@@ -76,7 +73,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Stop_Activity_With_AspNetListener_Enabled()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
@@ -92,7 +89,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Stop_Root_Activity_With_All_Children()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             new Activity("child").Start();
@@ -108,7 +105,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Stop_Child_Activity_With_All_Children()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = CreateActivity();
             rootActivity.Start();
             var child = new Activity("child").Start();
@@ -126,7 +123,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Should_Not_Create_RootActivity_If_AspNetListener_Not_Enabled()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.Null(rootActivity);
@@ -135,7 +132,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Should_Not_Create_RootActivity_If_AspNetActivity_Not_Enabled()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             EnableAspNetListenerOnly();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
@@ -145,7 +142,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Should_Not_Create_RootActivity_If_AspNetActivity_Not_Enabled_With_Arguments()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             EnableAspNetListenerAndDisableActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
@@ -155,11 +152,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Restore_Info_From_Request_Header()
         {
-            var requestHeaders = new NameValueCollection();
-            requestHeaders.Add(ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1");
-            requestHeaders.Add(ActivityExtensions.CorrelationContextHeaderName, _baggageInHeader);
+            var requestHeaders = new Dictionary<string, string>
+            {
+                {ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1"},
+                {ActivityExtensions.CorrelationContextHeaderName, _baggageInHeader}
+            };
 
-            var context = CreateHttpContext(requestHeaders);
+            var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
             EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
@@ -173,7 +172,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Start_Activity()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
@@ -184,7 +183,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Saved_In_HttContext()
         {
-            var context = CreateHttpContext();
+            var context = HttpContextHelper.GetFakeHttpContext();
             EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
@@ -200,18 +199,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             _baggageItems.ForEach(kv => activity.AddBaggage(kv.Key, kv.Value));
 
             return activity;
-        }
-
-        private HttpContextBase CreateHttpContext(NameValueCollection requestHeaders = null, Exception error = null)
-        {
-            var context = new TestHttpContext(error);
-
-            if (requestHeaders != null)
-            {
-                context.Request.Headers.Add(requestHeaders);
-            }
-
-            return context;
         }
 
         private void EnableAspNetListenerAndDisableActivity(Action<KeyValuePair<string, object>> onNext = null,

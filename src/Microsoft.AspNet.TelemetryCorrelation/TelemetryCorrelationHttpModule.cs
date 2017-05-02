@@ -7,6 +7,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     class TelemetryCorrelationHttpModule : IHttpModule
     {
         private const string BeginCalledFlag = "Microsoft.AspNet.TelemetryCorrelation.BeginCalled";
+
         public void Dispose()
         {
         }
@@ -18,28 +19,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             context.PreRequestHandlerExecute += Application_PreRequestHandlerExecute;
         }
 
-        private HttpContextBase CurrentHttpContext
-        {
-            get
-            {
-                Debug.Assert(HttpContext.Current != null);
-
-                return new HttpContextWrapper(HttpContext.Current);
-            }
-        }
-
         private void Application_BeginRequest(object sender, EventArgs e)
         {
-            var context = CurrentHttpContext;
+            var context = ((HttpApplication)sender).Context;
             AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_BeginRequest");
-            ActivityHelper.CreateRootActivity(CurrentHttpContext);
+            ActivityHelper.CreateRootActivity(context);
             context.Items[BeginCalledFlag] = true;
         }
 
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
             AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
-            var context = CurrentHttpContext;
+            var context = ((HttpApplication)sender).Context;
+
             var rootActivity = (Activity) context.Items[ActivityHelper.ActivityKey];
             if (Activity.Current == null && rootActivity != null)
             {
@@ -51,14 +43,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_EndRequest");
 
-            var context = CurrentHttpContext;
+            var context = ((HttpApplication)sender).Context;
 
             // EndRequest does it's best effort to notify that request has ended
             // BeginRequest has never been called
             if (!context.Items.Contains(BeginCalledFlag))
             {
                 // Activity has never been started
-                var activity = ActivityHelper.CreateRootActivity(CurrentHttpContext);
+                var activity = ActivityHelper.CreateRootActivity(context);
                 ActivityHelper.StopAspNetActivity(activity, context);
             }
             else
