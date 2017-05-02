@@ -40,9 +40,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             AspNetTelemetryCorrelaitonEventSource.Log.TelemetryCorrelationHttpModule("Application_PreRequestHandlerExecute");
             var context = CurrentHttpContext;
-            if (Activity.Current == null && context.Items[ActivityHelper.ActivityKey] is Activity)
+            var rootActivity = (Activity) context.Items[ActivityHelper.ActivityKey];
+            if (Activity.Current == null && rootActivity != null)
             {
-                ActivityHelper.RestoreCurrentActivity(context);
+                ActivityHelper.RestoreCurrentActivity(rootActivity);
             }
         }
 
@@ -67,10 +68,9 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 if (!ActivityHelper.StopAspNetActivity(activity, context))
                 {
                     // Activity we created was lost, let's report it
-                    var lostActivity = CurrentHttpContext.Items[ActivityHelper.ActivityKey] as Activity;
-                    if (lostActivity != null)
+                    if (activity != null)
                     {
-                        ActivityHelper.StopLostActivity(lostActivity, context);
+                        ActivityHelper.StopLostActivity(activity, context);
                     }
                 }
             }
