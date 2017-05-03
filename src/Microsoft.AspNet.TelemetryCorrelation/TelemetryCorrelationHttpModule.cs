@@ -22,14 +22,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         private void Application_BeginRequest(object sender, EventArgs e)
         {
             var context = ((HttpApplication)sender).Context;
-            AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_BeginRequest");
+            AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_BeginRequest");
             ActivityHelper.CreateRootActivity(context);
             context.Items[BeginCalledFlag] = true;
         }
 
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
-            AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
+            AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
             var context = ((HttpApplication)sender).Context;
 
             var rootActivity = (Activity) context.Items[ActivityHelper.ActivityKey];
@@ -41,7 +41,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
         private void Application_EndRequest(object sender, EventArgs e)
         {
-            AspNetTelemetryCorrelaitonEventSource.Log.TraceCallback("Application_EndRequest");
+            AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_EndRequest");
 
             var context = ((HttpApplication)sender).Context;
 

@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             }
             childActivity.Start();
 
-            AspNetTelemetryCorrelaitonEventSource.Log.ActivityStarted(childActivity.Id);
+            AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(childActivity.Id);
             return childActivity;
         }
 
@@ -57,7 +57,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 {
                     s_aspNetListener.StopActivity(Activity.Current, new { });
                     RemoveCurrentActivity(context);
-                    AspNetTelemetryCorrelaitonEventSource.Log.ActivityStopped(activity.Id);
+                    AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id);
                     return true;
                 }
             }
@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             {
                 s_aspNetListener.Write(AspNetActivityLostStopName, new { activity });
                 RemoveCurrentActivity(context);
-                AspNetTelemetryCorrelaitonEventSource.Log.ActivityStopped(activity.Id, true);
+                AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id, true);
             }
         }
 
@@ -85,7 +85,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 if (StartAspNetActivity(rootActivity))
                 {
                     SaveCurrentActivity(context, rootActivity);
-                    AspNetTelemetryCorrelaitonEventSource.Log.ActivityStarted(rootActivity.Id);
+                    AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(rootActivity.Id);
                     return rootActivity;
                 }
             }
