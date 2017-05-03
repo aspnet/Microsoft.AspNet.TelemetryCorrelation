@@ -36,13 +36,16 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         #region RestoreCurrentActivity tests
         [Fact]
-        public void Can_Restore_Activity()
+        public async Task Can_Restore_Activity()
         {
             var rootActivity = CreateActivity();
-            rootActivity.Start();
             var context = HttpContextHelper.GetFakeHttpContext();
-            context.Items[ActivityHelper.ActivityKey] = rootActivity;
-            rootActivity.Stop();
+            await Task.Run(() =>
+            {
+                rootActivity.Start();
+                context.Items[ActivityHelper.ActivityKey] = rootActivity;
+            });
+            Assert.Null(Activity.Current);
 
             var restoredActivity = ActivityHelper.RestoreCurrentActivity(rootActivity);
 
