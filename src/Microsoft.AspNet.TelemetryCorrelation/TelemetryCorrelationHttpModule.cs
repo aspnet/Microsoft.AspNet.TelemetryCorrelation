@@ -1,17 +1,25 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Diagnostics;
 using System.Web;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
 {
-    class TelemetryCorrelationHttpModule : IHttpModule
+    /// <summary>
+    /// Http Module sets ambient state using Activity API from DiagnosticsSource package.
+    /// </summary>
+    public class TelemetryCorrelationHttpModule : IHttpModule
     {
         private const string BeginCalledFlag = "Microsoft.AspNet.TelemetryCorrelation.BeginCalled";
 
+        /// <inheritdoc />
         public void Dispose()
         {
         }
 
+        /// <inheritdoc />
         public void Init(HttpApplication context)
         {
             context.BeginRequest += Application_BeginRequest;
@@ -32,7 +40,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
             var context = ((HttpApplication)sender).Context;
 
-            var rootActivity = (Activity) context.Items[ActivityHelper.ActivityKey];
+            var rootActivity = (Activity)context.Items[ActivityHelper.ActivityKey];
             if (Activity.Current == null && rootActivity != null)
             {
                 ActivityHelper.RestoreCurrentActivity(rootActivity);
@@ -56,6 +64,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             else
             {
                 var activity = (Activity)context.Items[ActivityHelper.ActivityKey];
+
                 // try to stop activity if it's in the Current stack
                 if (!ActivityHelper.StopAspNetActivity(activity, context))
                 {
@@ -66,6 +75,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     }
                 }
             }
-        }        
+        }
     }
 }

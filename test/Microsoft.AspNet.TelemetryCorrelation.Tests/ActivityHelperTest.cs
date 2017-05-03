@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -15,14 +18,17 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
     public class ActivityHelperTest
     {
         private const string TestActivityName = "Activity.Test";
-        private List<KeyValuePair<string, string>> _baggageItems = new List<KeyValuePair<string, string>>();
-        private string _baggageInHeader;
+        private readonly List<KeyValuePair<string, string>> _baggageItems;
+        private readonly string _baggageInHeader;
 
         public ActivityHelperTest()
         {
-            _baggageItems.Add(new KeyValuePair<string, string>("TestKey1", "123"));
-            _baggageItems.Add(new KeyValuePair<string, string>("TestKey2", "456"));
-            _baggageItems.Add(new KeyValuePair<string, string>("TestKey1", "789"));
+            _baggageItems = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("TestKey1", "123"),
+                new KeyValuePair<string, string>("TestKey2", "456"),
+                new KeyValuePair<string, string>("TestKey1", "789")
+            };
 
             _baggageInHeader = "TestKey1=123,TestKey2=456,TestKey1=789";
             // reset static fields
@@ -30,7 +36,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 GetField("s_allListenerObservable", BindingFlags.Static | BindingFlags.NonPublic);
             allListenerField.SetValue(null, null);
             var aspnetListenerField = typeof(ActivityHelper).
-                GetField("s_aspNetListener", BindingFlags.Static | BindingFlags.NonPublic);
+                GetField("AspNetListener", BindingFlags.Static | BindingFlags.NonPublic);
             aspnetListenerField.SetValue(null, new DiagnosticListener(ActivityHelper.AspNetListenerName));
         }                
 
@@ -266,10 +272,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
             public void OnNext(KeyValuePair<string, object> value)
             {
-                if(_onNextCallBack != null)
-                {
-                    _onNextCallBack(value);
-                }
+                _onNextCallBack?.Invoke(value);
             }
         }
 

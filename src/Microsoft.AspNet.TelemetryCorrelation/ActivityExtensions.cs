@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -12,7 +15,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static class ActivityExtensions
     {
+        /// <summary>
+        /// Http header name to carry the Request ID.
+        /// </summary>
         internal const string RequestIDHeaderName = "Request-Id";
+
+        /// <summary>
+        /// Http header name to carry the correlation context.
+        /// </summary>
         internal const string CorrelationContextHeaderName = "Correlation-Context";
 
         /// <summary>
@@ -20,6 +30,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// </summary>
         /// <param name="activity">Instance of activity that has not been started yet.</param>
         /// <param name="requestHeaders">Request headers collection.</param>
+        /// <returns>true if request was parsed successfully, false - otherwise.</returns>
         public static bool Extract(this Activity activity, NameValueCollection requestHeaders)
         {
             if (activity == null)
@@ -46,17 +57,16 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 // there may be several Request-Id header, but we only read the first one
                 activity.SetParentId(requestIDs[0]);
 
-                // Header format - Correlation-Context: key1=value1, key2=value2 
+                // Header format - Correlation-Context: key1=value1, key2=value2
                 var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
                 if (baggages != null)
                 {
-                    // there may be several Correlation-Context header 
+                    // there may be several Correlation-Context header
                     foreach (var item in baggages)
                     {
                         foreach (var pair in item.Split(','))
                         {
-                            NameValueHeaderValue baggageItem;
-                            if (NameValueHeaderValue.TryParse(pair, out baggageItem))
+                            if (NameValueHeaderValue.TryParse(pair, out NameValueHeaderValue baggageItem))
                             {
                                 activity.AddBaggage(baggageItem.Name, baggageItem.Value);
                             }
@@ -74,10 +84,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             return false;
         }
 
-
         /// <summary>
-        /// 
+        /// Reads Request-Id and Correlation-Context headers and sets ParentId and Baggage on Activity.
         /// </summary>
+        /// <param name="activity">Instance of activity that has not been started yet.</param>
+        /// <param name="requestHeaders">Request headers collection.</param>
+        /// <returns>true if request was parsed successfully, false - otherwise.</returns>
         [Obsolete("Method is obsolete, use Extract method instead", true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public static bool TryParse(this Activity activity, NameValueCollection requestHeaders)
