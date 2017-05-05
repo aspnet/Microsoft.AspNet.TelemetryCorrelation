@@ -1,4 +1,7 @@
-﻿using System.Diagnostics.Tracing;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Diagnostics.Tracing;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
 {
@@ -6,12 +9,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     /// ETW EventSource tracing class.
     /// </summary>
     [EventSource(Name = "Microsoft-AspNet-Telemetry-Correlation", Guid = "ace2021e-e82c-5502-d81d-657f27612673")]
-    internal sealed class AspNetTelemetryCorrelaitonEventSource : EventSource
+    internal sealed class AspNetTelemetryCorrelationEventSource : EventSource
     {
         /// <summary>
         /// Instance of the PlatformEventSource class.
         /// </summary>
-        public static readonly AspNetTelemetryCorrelaitonEventSource Log = new AspNetTelemetryCorrelaitonEventSource();
+        public static readonly AspNetTelemetryCorrelationEventSource Log = new AspNetTelemetryCorrelationEventSource();
 
         [Event(1, Message = "Callback='{0}'", Level = EventLevel.Verbose)]
         public void TraceCallback(string callback)

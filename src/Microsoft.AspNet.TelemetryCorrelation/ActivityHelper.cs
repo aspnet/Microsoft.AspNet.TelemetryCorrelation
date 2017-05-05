@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Diagnostics;
 using System.Web;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
@@ -8,13 +11,32 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     /// </summary>
     internal static class ActivityHelper
     {
+        /// <summary>
+        /// Listener name.
+        /// </summary>
         public const string AspNetListenerName = "Microsoft.AspNet.TelemetryCorrelation";
+
+        /// <summary>
+        /// Activity name for http request.
+        /// </summary>
         public const string AspNetActivityName = "Microsoft.AspNet.HttpReqIn";
+
+        /// <summary>
+        /// Event name for the activity start event.
+        /// </summary>
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
+
+        /// <summary>
+        /// Event name for the activity stop event.
+        /// </summary>
         public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.ActivityLost.Stop";
 
+        /// <summary>
+        /// Key to store the activity in HttpContext.
+        /// </summary>
         public const string ActivityKey = "__AspnetActivity__";
-        private static readonly DiagnosticListener s_aspNetListener = new DiagnosticListener(AspNetListenerName);
+
+        private static readonly DiagnosticListener AspNetListener = new DiagnosticListener(AspNetListenerName);
 
         /// <summary>
         /// It's possible that a request is executed in both native threads and managed threads,
@@ -22,6 +44,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// This method is intended to restore the current activity in order to correlate the child
         /// activities with the root activity of the request.
         /// </summary>
+        /// <param name="root">Root activity id for the current request.</param>
         /// <returns>If it returns an activity, it will be silently stopped with the parent activity</returns>
         public static Activity RestoreCurrentActivity(Activity root)
         {
@@ -32,13 +55,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             var childActivity = new Activity(root.OperationName);
             childActivity.SetParentId(root.Id);
             childActivity.SetStartTime(root.StartTimeUtc);
-            foreach(var item in root.Baggage)
+            foreach (var item in root.Baggage)
             {
                 childActivity.AddBaggage(item.Key, item.Value);
             }
+
             childActivity.Start();
 
-            AspNetTelemetryCorrelaitonEventSource.Log.ActivityStarted(childActivity.Id);
+            AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(childActivity.Id);
             return childActivity;
         }
 
@@ -55,9 +79,9 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 // if activity is in the stack, stop it with Stop event
                 if (Activity.Current != null)
                 {
-                    s_aspNetListener.StopActivity(Activity.Current, new { });
+                    AspNetListener.StopActivity(Activity.Current, new { });
                     RemoveCurrentActivity(context);
-                    AspNetTelemetryCorrelaitonEventSource.Log.ActivityStopped(activity.Id);
+                    AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id);
                     return true;
                 }
             }
@@ -69,15 +93,15 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             if (activity != null)
             {
-                s_aspNetListener.Write(AspNetActivityLostStopName, new { activity });
+                AspNetListener.Write(AspNetActivityLostStopName, new { activity });
                 RemoveCurrentActivity(context);
-                AspNetTelemetryCorrelaitonEventSource.Log.ActivityStopped(activity.Id, true);
+                AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id, true);
             }
         }
 
         public static Activity CreateRootActivity(HttpContext context)
         {
-            if (s_aspNetListener.IsEnabled() && s_aspNetListener.IsEnabled(AspNetActivityName))
+            if (AspNetListener.IsEnabled() && AspNetListener.IsEnabled(AspNetActivityName))
             {
                 var rootActivity = new Activity(ActivityHelper.AspNetActivityName);
 
@@ -85,25 +109,27 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 if (StartAspNetActivity(rootActivity))
                 {
                     SaveCurrentActivity(context, rootActivity);
-                    AspNetTelemetryCorrelaitonEventSource.Log.ActivityStarted(rootActivity.Id);
+                    AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(rootActivity.Id);
                     return rootActivity;
                 }
             }
+
             return null;
         }
 
         private static bool StartAspNetActivity(Activity activity)
         {
-            if (s_aspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
+            if (AspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
             {
-                if (s_aspNetListener.IsEnabled(AspNetActivityStartName))
+                if (AspNetListener.IsEnabled(AspNetActivityStartName))
                 {
-                    s_aspNetListener.StartActivity(activity, new { });
+                    AspNetListener.StartActivity(activity, new { });
                 }
                 else
                 {
                     activity.Start();
                 }
+
                 return true;
             }
 
@@ -111,9 +137,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         /// <summary>
-        /// This should be called after the Activity starts
-        /// and only for root activity of a request
+        /// This should be called after the Activity starts and only for root activity of a request.
         /// </summary>
+        /// <param name="context">Context to save context to.</param>
+        /// <param name="activity">Activity to save.</param>
         private static void SaveCurrentActivity(HttpContext context, Activity activity)
         {
             Debug.Assert(context != null);
