@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Diagnostics.Tracing;
+#pragma warning disable SA1600 // Elements must be documented
 
 namespace Microsoft.AspNet.TelemetryCorrelation
 {
@@ -47,3 +48,4 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
     }
 }
+#pragma warning restore SA1600 // Elements must be documented
