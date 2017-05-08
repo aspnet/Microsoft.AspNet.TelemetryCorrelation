@@ -8,7 +8,6 @@ set logOptions=/flp:Summary;Verbosity=detailed;LogFile=msbuild.log /flp1:warning
 
 REM Find the most recent 32bit MSBuild.exe on the system. Require v14.0 (installed with VS2015) or later. Always quote the %MSBuild% value when setting the variable and never quote %MSBuild% references.
 set MSBuild="%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\MSBuild.exe"
-if not exist %MSBuild% @set MSBuild="%ProgramFiles(x86)%\MSBuild\14.0\Bin\MSBuild.exe"
 if not exist %MSBuild% (
   echo Could not find msbuild.exe. Please run this from a Visual Studio developer prompt
   goto BuildFail
