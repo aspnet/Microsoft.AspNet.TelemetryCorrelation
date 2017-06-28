@@ -35,7 +35,7 @@ Project global versioning targets.
   </PropertyGroup>
 
   <PropertyGroup>
-    <NuGetPackageVersion Condition="'$(NuGetPackageVersion)' == ''">$(VersionMajor).$(VersionMinor).$(VersionRelease)-preview1-$(VersionBuild)-01</NuGetPackageVersion>
+    <NuGetPackageVersion Condition="'$(NuGetPackageVersion)' == ''">$(VersionMajor).$(VersionMinor).$(VersionRelease)</NuGetPackageVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(VersionFileGenerationEnabled)' == 'true'">
