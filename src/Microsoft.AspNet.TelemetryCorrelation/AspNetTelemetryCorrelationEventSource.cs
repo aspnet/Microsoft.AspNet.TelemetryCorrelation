@@ -46,6 +46,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             WriteEvent(5, reason);
         }
+
+        [Event(6, Message = "Finished Activity is detected on the stack, Id: '{0}', Name: '{1}'", Level = EventLevel.Error)]
+        public void FinishedActivityIsDetected(string id, string name)
+        {
+            WriteEvent(6, id, name);
+        }
+
+        [Event(7, Message = "Activity stack is too deep, Current Id: '{0}', Name: '{1}'", Level = EventLevel.Error)]
+        public void ActivityStackIsTooDeep(string id, string name)
+        {
+            WriteEvent(7, id, name);
+        }
     }
 }
 #pragma warning restore SA1600 // Elements must be documented

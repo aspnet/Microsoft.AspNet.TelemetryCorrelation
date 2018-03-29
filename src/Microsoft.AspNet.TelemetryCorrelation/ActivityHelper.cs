@@ -36,9 +36,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// </summary>
         public const string ActivityKey = "__AspnetActivity__";
 
-        private static readonly DiagnosticListener AspNetListener = new DiagnosticListener(AspNetListenerName);
-
         private const int MaxActivityStackSize = 128;
+        private static readonly DiagnosticListener AspNetListener = new DiagnosticListener(AspNetListenerName);
 
         /// <summary>
         /// It's possible that a request is executed in both native threads and managed threads,
@@ -96,17 +95,26 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     // i.e. stopping it has no effect on the Current.
                     // We also protect from endless loop with the MaxActivityStackSize
                     // in case it would ever be possible to have cycles in the Activity stack.
-                    if (newCurrentActivity == currentActivity || iteration == MaxActivityStackSize)
+                    if (newCurrentActivity == currentActivity)
                     {
                         // We could not reach our 'activity' in the stack and have to report 'lost activity'
                         // if child activity is broken, we can still stop the root one that we own to clean up
                         // all resources
+                        AspNetTelemetryCorrelationEventSource.Log.FinishedActivityIsDetected(currentActivity.Id, currentActivity.OperationName);
+                        activity.Stop();
+                        return false;
+                    }
+
+                    // We also protect from endless loop with the MaxActivityStackSize
+                    // in case it would ever be possible to have cycles in the Activity stack.
+                    if (iteration++ == MaxActivityStackSize)
+                    {
+                        AspNetTelemetryCorrelationEventSource.Log.ActivityStackIsTooDeep(currentActivity.Id, currentActivity.OperationName);
                         activity.Stop();
                         return false;
                     }
 
                     currentActivity = newCurrentActivity;
-                    iteration ++;
                 }
 
                 // if activity is in the stack, stop it with Stop event
@@ -160,6 +168,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             return null;
         }
 
+        /// <summary>
+        /// This should be called after the Activity starts and only for root activity of a request.
+        /// </summary>
+        /// <param name="context">Context to save context to.</param>
+        /// <param name="activity">Activity to save.</param>
+        internal static void SaveCurrentActivity(HttpContext context, Activity activity)
+        {
+            Debug.Assert(context != null);
+            Debug.Assert(activity != null);
+
+            context.Items[ActivityKey] = activity;
+        }
+
         private static bool StartAspNetActivity(Activity activity)
         {
             if (AspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
@@ -177,19 +198,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             }
 
             return false;
-        }
-
-        /// <summary>
-        /// This should be called after the Activity starts and only for root activity of a request.
-        /// </summary>
-        /// <param name="context">Context to save context to.</param>
-        /// <param name="activity">Activity to save.</param>
-        internal static void SaveCurrentActivity(HttpContext context, Activity activity)
-        {
-            Debug.Assert(context != null);
-            Debug.Assert(activity != null);
-
-            context.Items[ActivityKey] = activity;
         }
 
         private static void RemoveCurrentActivity(HttpContext context)

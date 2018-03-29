@@ -160,8 +160,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Stop_Root_Activity_With_129_Nesting_Depth()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var root = new Activity("root");
-            root.Start();
+            var root = new Activity("root").Start();
             ActivityHelper.SaveCurrentActivity(context, root);
 
             for (int i = 0; i < 129; i++)
