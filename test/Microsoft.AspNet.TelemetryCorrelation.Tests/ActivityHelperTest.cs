@@ -140,14 +140,17 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             {
                 await Task.Run(() =>
                 {
-                    // both times we enter this method, Current is 'child' activity
-                    // because we stop it inside the Task.Run
-                    // that does not afect 'parent' context in which Task.Run is called.
+                    // when we enter this method, Current is 'child' activity
                     Activity.Current.Stop();
-                    // I.e. we'll be stopping child twice and never alter Current.
+                    // here Current is 'parent', but only in this execution context
                 });
             }
 
+            // when we return back here, in the 'parent' execution context
+            // Current is still 'child' activity - changes in child context (inside Task.Run)
+            // do not affect 'parent' context in which Task.Run is called.
+            // But 'child' Activity is stopped, thus consequent calls to Stop will
+            // not update Current
             Assert.False(ActivityHelper.StopAspNetActivity(root, context));
             Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);

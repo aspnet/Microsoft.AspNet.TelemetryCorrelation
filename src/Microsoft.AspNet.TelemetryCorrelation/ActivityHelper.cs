@@ -80,7 +80,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (activity != null && currentActivity != null)
             {
                 // silently stop all child activities before activity
-                int position = 0;
+                int iteration = 0;
                 while (currentActivity != activity)
                 {
                     currentActivity.Stop();
@@ -91,12 +91,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                         break;
                     }
 
-                    // there could be a case when request or any child activity is stopped several times 
-                    // from the several child execution contexts.
-                    // this makes Activity finished, i.e. stopping it has no effect on the Current.
+                    // there could be a case when request or any child activity is stopped
+                    // from the child execution contexts. In this case, Activity is finished,
+                    // i.e. stopping it has no effect on the Current.
                     // We also protect from endless loop with the MaxActivityStackSize
                     // in case it would ever be possible to have cycles in the Activity stack.
-                    if (newCurrentActivity == currentActivity || position == MaxActivityStackSize)
+                    if (newCurrentActivity == currentActivity || iteration == MaxActivityStackSize)
                     {
                         // We could not reach our 'activity' in the stack and have to report 'lost activity'
                         // if child activity is broken, we can still stop the root one that we own to clean up
@@ -106,7 +106,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     }
 
                     currentActivity = newCurrentActivity;
-                    position++;
+                    iteration ++;
                 }
 
                 // if activity is in the stack, stop it with Stop event
