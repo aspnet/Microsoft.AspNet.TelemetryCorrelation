@@ -126,6 +126,54 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Assert.Equal(rootActivity, Activity.Current);
             Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
+
+        [Fact]
+        public async Task Can_Stop_Root_Activity_If_It_Is_Broken()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root").Start();
+            ActivityHelper.SaveCurrentActivity(context, root);
+
+            new Activity("child").Start();
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Run(() =>
+                {
+                    // both times we enter this method, Current is 'child' activity
+                    // because we stop it inside the Task.Run
+                    // that does not afect 'parent' context in which Task.Run is called.
+                    Activity.Current.Stop();
+                    // I.e. we'll be stopping child twice and never alter Current.
+                });
+            }
+
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.Null(Activity.Current);
+        }
+
+        [Fact]
+        public void Stop_Root_Activity_With_129_Nesting_Depth()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root");
+            root.Start();
+            ActivityHelper.SaveCurrentActivity(context, root);
+
+            for (int i = 0; i < 129; i++)
+            {
+                new Activity("child" + i).Start();
+            }
+
+            // we do not allow more than 128 nested activities here 
+            // only to protect from hypothetical cycles in Activity stack
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+
+            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.Null(Activity.Current);
+        }
+
         #endregion
 
         #region CreateRootActivity tests
