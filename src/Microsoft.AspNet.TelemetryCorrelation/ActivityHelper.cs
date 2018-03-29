@@ -91,10 +91,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     }
 
                     // there could be a case when request or any child activity is stopped
-                    // from the child execution contexts. In this case, Activity is finished,
-                    // i.e. stopping it has no effect on the Current.
-                    // We also protect from endless loop with the MaxActivityStackSize
-                    // in case it would ever be possible to have cycles in the Activity stack.
+                    // from the child execution context. In this case, Activity is present in the Current Stack, 
+                    // but is finished, i.e. stopping it has no effect on the Current.
                     if (newCurrentActivity == currentActivity)
                     {
                         // We could not reach our 'activity' in the stack and have to report 'lost activity'

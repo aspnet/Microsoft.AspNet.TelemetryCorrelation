@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(3, id, lost);
         }
 
-        [Event(4, Message = "Failed to parse header '{0}', value: '{1}'", Level = EventLevel.Error)]
+        [Event(4, Message = "Failed to parse header '{0}', value: '{1}'", Level = EventLevel.Informational)]
         public void HeaderParsingError(string headerName, string headerValue)
         {
             WriteEvent(4, headerName, headerValue);
