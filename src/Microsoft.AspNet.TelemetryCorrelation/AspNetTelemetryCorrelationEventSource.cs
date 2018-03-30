@@ -35,7 +35,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(3, id, lost);
         }
 
-        [Event(4, Message = "Failed to parse header '{0}', value: '{1}'", Level = EventLevel.Error)]
+        [Event(4, Message = "Failed to parse header '{0}', value: '{1}'", Level = EventLevel.Informational)]
         public void HeaderParsingError(string headerName, string headerValue)
         {
             WriteEvent(4, headerName, headerValue);
@@ -45,6 +45,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public void ActvityExtractionError(string reason)
         {
             WriteEvent(5, reason);
+        }
+
+        [Event(6, Message = "Finished Activity is detected on the stack, Id: '{0}', Name: '{1}'", Level = EventLevel.Error)]
+        public void FinishedActivityIsDetected(string id, string name)
+        {
+            WriteEvent(6, id, name);
+        }
+
+        [Event(7, Message = "Activity stack is too deep, Current Id: '{0}', Name: '{1}'", Level = EventLevel.Error)]
+        public void ActivityStackIsTooDeep(string id, string name)
+        {
+            WriteEvent(7, id, name);
         }
     }
 }

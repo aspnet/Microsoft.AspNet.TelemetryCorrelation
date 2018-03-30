@@ -126,6 +126,56 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Assert.Equal(rootActivity, Activity.Current);
             Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
+
+        [Fact]
+        public async Task Can_Stop_Root_Activity_If_It_Is_Broken()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root").Start();
+            ActivityHelper.SaveCurrentActivity(context, root);
+
+            new Activity("child").Start();
+
+            for (int i = 0; i < 2; i++)
+            {
+                await Task.Run(() =>
+                {
+                    // when we enter this method, Current is 'child' activity
+                    Activity.Current.Stop();
+                    // here Current is 'parent', but only in this execution context
+                });
+            }
+
+            // when we return back here, in the 'parent' execution context
+            // Current is still 'child' activity - changes in child context (inside Task.Run)
+            // do not affect 'parent' context in which Task.Run is called.
+            // But 'child' Activity is stopped, thus consequent calls to Stop will
+            // not update Current
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.Null(Activity.Current);
+        }
+
+        [Fact]
+        public void Stop_Root_Activity_With_129_Nesting_Depth()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root").Start();
+            ActivityHelper.SaveCurrentActivity(context, root);
+
+            for (int i = 0; i < 129; i++)
+            {
+                new Activity("child" + i).Start();
+            }
+
+            // we do not allow more than 128 nested activities here 
+            // only to protect from hypothetical cycles in Activity stack
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+
+            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.Null(Activity.Current);
+        }
+
         #endregion
 
         #region CreateRootActivity tests

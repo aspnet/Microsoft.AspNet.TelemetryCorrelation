@@ -68,7 +68,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Microsoft.AspNet.TelemetryCorrelation.ruleset" />
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
