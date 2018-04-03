@@ -5,8 +5,9 @@
         <title>Microsoft.AspNet.TelemetryCorrelation</title>
         <version>$NuGetPackageVersion$</version>
         <authors>Microsoft</authors>
-        <owners>Microsoft</owners>
+        <owners>Microsoft,aspnet</owners>
         <copyright>&#169; Microsoft Corporation. All rights reserved.</copyright>
+        <iconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</iconUrl>
         <description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</description>
         <summary>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</summary>
         <language>en-US</language>
