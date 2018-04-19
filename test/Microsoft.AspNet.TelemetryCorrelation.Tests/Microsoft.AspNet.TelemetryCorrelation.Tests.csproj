@@ -84,6 +84,7 @@
     <Compile Include="ActivityExtensionsTest.cs" />
     <Compile Include="ActivityHelperTest.cs" />
     <Compile Include="HttpContextHelper.cs" />
+    <Compile Include="HttpModuleTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebConfigWithLocaltionTagTransformTest.cs" />
     <Compile Include="WebConfigTransformTest.cs" />

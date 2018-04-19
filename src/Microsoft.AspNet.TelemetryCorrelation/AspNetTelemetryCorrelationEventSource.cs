@@ -58,6 +58,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             WriteEvent(7, id, name);
         }
+
+        [Event(8, Message = "Activity started, Id='{0}'", Level = EventLevel.Informational)]
+        public void ActivityRestored(string id)
+        {
+            WriteEvent(8, id);
+        }
     }
 }
 #pragma warning restore SA1600 // Elements must be documented

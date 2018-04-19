@@ -2,7 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Diagnostics;
+using System.Reflection;
 using System.Web;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
@@ -13,6 +15,9 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     public class TelemetryCorrelationHttpModule : IHttpModule
     {
         private const string BeginCalledFlag = "Microsoft.AspNet.TelemetryCorrelation.BeginCalled";
+        private static bool initialized = false;
+        private static MethodInfo onStepMethodInfo = null;
+        private static object sync = new object();
 
         /// <inheritdoc />
         public void Dispose()
@@ -24,7 +29,41 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             context.BeginRequest += Application_BeginRequest;
             context.EndRequest += Application_EndRequest;
-            context.PreRequestHandlerExecute += Application_PreRequestHandlerExecute;
+
+            if (!initialized)
+            {
+                lock (sync)
+                {
+                    if (!initialized)
+                    {
+                        onStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
+                        initialized = true;
+                    }
+                }
+            }
+
+            // OnExecuteRequestStep is availabile starting with 4.7.1
+            // If this is executed in 4.7.1 runtime (regardless of targeted .NET version),
+            // we will use it to restore lost activity, otherwise keep PreRequestHandlerExecute
+            if (onStepMethodInfo != null)
+            {
+                onStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)OnExecuteRequestStep });
+            }
+            else
+            {
+                context.PreRequestHandlerExecute += Application_PreRequestHandlerExecute;
+            }
+        }
+
+        /// <summary>
+        /// Restores Activity before each pipeline step if it was lost.
+        /// </summary>
+        /// <param name="context">HttpContext instance.</param>
+        /// <param name="step">Step to be executed.</param>
+        internal void OnExecuteRequestStep(HttpContextBase context, Action step)
+        {
+            RestoreActivityIfNeeded(context.Items);
+            step();
         }
 
         private void Application_BeginRequest(object sender, EventArgs e)
@@ -38,13 +77,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
-            var context = ((HttpApplication)sender).Context;
-
-            var rootActivity = (Activity)context.Items[ActivityHelper.ActivityKey];
-            if (Activity.Current == null && rootActivity != null)
-            {
-                ActivityHelper.RestoreCurrentActivity(rootActivity);
-            }
+            RestoreActivityIfNeeded(((HttpApplication)sender).Context.Items);
         }
 
         private void Application_EndRequest(object sender, EventArgs e)
@@ -73,6 +106,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     {
                         ActivityHelper.StopLostActivity(activity, context);
                     }
+                }
+            }
+        }
+
+        private void RestoreActivityIfNeeded(IDictionary contextItems)
+        {
+            if (Activity.Current == null)
+            {
+                var rootActivity = (Activity)contextItems[ActivityHelper.ActivityKey];
+                if (rootActivity != null)
+                {
+                    ActivityHelper.RestoreCurrentActivity(rootActivity);
                 }
             }
         }

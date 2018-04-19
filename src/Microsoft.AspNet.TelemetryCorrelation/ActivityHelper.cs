@@ -63,7 +63,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
             childActivity.Start();
 
-            AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(childActivity.Id);
+            AspNetTelemetryCorrelationEventSource.Log.ActivityRestored(childActivity.Id);
             return childActivity;
         }
 
@@ -91,7 +91,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     }
 
                     // there could be a case when request or any child activity is stopped
-                    // from the child execution context. In this case, Activity is present in the Current Stack, 
+                    // from the child execution context. In this case, Activity is present in the Current Stack,
                     // but is finished, i.e. stopping it has no effect on the Current.
                     if (newCurrentActivity == currentActivity)
                     {

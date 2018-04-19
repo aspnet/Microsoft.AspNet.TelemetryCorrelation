@@ -24,6 +24,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             return context;
         }
 
+        public static HttpContextBase GetFakeHttpContextBase(string page = "/page", string query = "", IDictionary<string, string> headers = null)
+        {
+            var context = GetFakeHttpContext(page, query, headers);
+            return new HttpContextWrapper(context);
+        }
+
         private class SimpleWorkerRequestWithHeaders : SimpleWorkerRequest
         {
             private readonly IDictionary<string, string> headers;
