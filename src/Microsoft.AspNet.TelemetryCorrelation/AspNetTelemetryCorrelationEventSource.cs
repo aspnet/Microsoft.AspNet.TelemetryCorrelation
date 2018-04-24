@@ -29,10 +29,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(2, id);
         }
 
-        [Event(3, Message = "Activity stopped, Id='{0}', lost {1}", Level = EventLevel.Verbose)]
-        public void ActivityStopped(string id, bool lost = false)
+        [Event(3, Message = "Activity stopped, Id='{0}', Name='{1}'", Level = EventLevel.Verbose)]
+        public void ActivityStopped(string id, string eventName)
         {
-            WriteEvent(3, id, lost);
+            WriteEvent(3, id, eventName);
         }
 
         [Event(4, Message = "Failed to parse header '{0}', value: '{1}'", Level = EventLevel.Informational)]

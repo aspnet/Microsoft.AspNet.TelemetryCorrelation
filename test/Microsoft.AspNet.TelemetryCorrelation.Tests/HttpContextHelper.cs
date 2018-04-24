@@ -18,7 +18,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Thread.GetDomain().SetData(".appVPath", string.Empty);
 
             var workerRequest = new SimpleWorkerRequestWithHeaders(page, query, new StringWriter(CultureInfo.InvariantCulture), headers);
-
             var context = new HttpContext(workerRequest);
             HttpContext.Current = context;
             return context;

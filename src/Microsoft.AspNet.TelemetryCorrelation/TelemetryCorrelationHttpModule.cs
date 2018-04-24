@@ -62,7 +62,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// <param name="step">Step to be executed.</param>
         internal void OnExecuteRequestStep(HttpContextBase context, Action step)
         {
-            RestoreActivityIfNeeded(context.Items);
+            // Once we have public Activity.Current setter (https://github.com/dotnet/corefx/issues/29207) this method will be
+            // simplified to just assign Current if is was lost.
+            // In the mean time, we are creating child Activity to restore the context. We have to send
+            // event with this Activity to tracing system. It created a lot of issues for listeners as
+            // we may potentially have a lot of them for different stages.
+            // To reduce amount of events, we only care about ExecuteRequestHandler stage - restore activity here and
+            // stop/report it to tracing system in EndRequest.
+            if (context.CurrentNotification == RequestNotification.ExecuteRequestHandler && !context.IsPostNotification)
+            {
+                ActivityHelper.RestoreActivityIfNeeded(context.Items);
+            }
+
             step();
         }
 
@@ -77,7 +88,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         private void Application_PreRequestHandlerExecute(object sender, EventArgs e)
         {
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_PreRequestHandlerExecute");
-            RestoreActivityIfNeeded(((HttpApplication)sender).Context.Items);
+            ActivityHelper.RestoreActivityIfNeeded(((HttpApplication)sender).Context.Items);
         }
 
         private void Application_EndRequest(object sender, EventArgs e)
@@ -92,32 +103,29 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             {
                 // Activity has never been started
                 var activity = ActivityHelper.CreateRootActivity(context);
-                ActivityHelper.StopAspNetActivity(activity, context);
+                ActivityHelper.StopAspNetActivity(activity, context.Items);
             }
             else
             {
                 var activity = (Activity)context.Items[ActivityHelper.ActivityKey];
 
                 // try to stop activity if it's in the Current stack
-                if (!ActivityHelper.StopAspNetActivity(activity, context))
+                // stop all running Activities on the way
+                if (!ActivityHelper.StopAspNetActivity(activity, context.Items))
                 {
-                    // Activity we created was lost, let's report it
+                    // perhaps we attempted to restore the Activity before
+                    var restoredActivity = (Activity)context.Items[ActivityHelper.RestoredActivityKey];
+                    if (restoredActivity != null)
+                    {
+                        // if so, report it
+                        ActivityHelper.StopRestoredActivity(restoredActivity, context);
+                    }
+
+                    // Activity we created was lost let's report it
                     if (activity != null)
                     {
                         ActivityHelper.StopLostActivity(activity, context);
                     }
-                }
-            }
-        }
-
-        private void RestoreActivityIfNeeded(IDictionary contextItems)
-        {
-            if (Activity.Current == null)
-            {
-                var rootActivity = (Activity)contextItems[ActivityHelper.ActivityKey];
-                if (rootActivity != null)
-                {
-                    ActivityHelper.RestoreCurrentActivity(rootActivity);
                 }
             }
         }
