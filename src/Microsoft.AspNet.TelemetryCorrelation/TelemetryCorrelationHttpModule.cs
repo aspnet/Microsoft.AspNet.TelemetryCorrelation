@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
@@ -15,9 +14,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     public class TelemetryCorrelationHttpModule : IHttpModule
     {
         private const string BeginCalledFlag = "Microsoft.AspNet.TelemetryCorrelation.BeginCalled";
-        private static bool initialized = false;
         private static MethodInfo onStepMethodInfo = null;
-        private static object sync = new object();
+
+        static TelemetryCorrelationHttpModule()
+        {
+            onStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
+        }
 
         /// <inheritdoc />
         public void Dispose()
@@ -29,18 +31,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             context.BeginRequest += Application_BeginRequest;
             context.EndRequest += Application_EndRequest;
-
-            if (!initialized)
-            {
-                lock (sync)
-                {
-                    if (!initialized)
-                    {
-                        onStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
-                        initialized = true;
-                    }
-                }
-            }
 
             // OnExecuteRequestStep is availabile starting with 4.7.1
             // If this is executed in 4.7.1 runtime (regardless of targeted .NET version),
