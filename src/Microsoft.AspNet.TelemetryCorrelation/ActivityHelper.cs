@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections;
 using System.Diagnostics;
 using System.Web;
 
@@ -27,53 +28,35 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public const string AspNetActivityStartName = "Microsoft.AspNet.HttpReqIn.Start";
 
         /// <summary>
-        /// Event name for the activity stop event.
+        /// Event name for the lost activity stop event.
         /// </summary>
         public const string AspNetActivityLostStopName = "Microsoft.AspNet.HttpReqIn.ActivityLost.Stop";
+
+        /// <summary>
+        /// Event name for the restored activity stop event.
+        /// </summary>
+        public const string AspNetActivityRestoredStopName = "Microsoft.AspNet.HttpReqIn.ActivityRestored.Stop";
 
         /// <summary>
         /// Key to store the activity in HttpContext.
         /// </summary>
         public const string ActivityKey = "__AspnetActivity__";
 
+        /// <summary>
+        /// Key to store the restored activity in HttpContext.
+        /// </summary>
+        public const string RestoredActivityKey = "__AspnetActivityRestored__";
+
         private const int MaxActivityStackSize = 128;
         private static readonly DiagnosticListener AspNetListener = new DiagnosticListener(AspNetListenerName);
-
-        /// <summary>
-        /// It's possible that a request is executed in both native threads and managed threads,
-        /// in such case Activity.Current will be lost during native thread and managed thread switch.
-        /// This method is intended to restore the current activity in order to correlate the child
-        /// activities with the root activity of the request.
-        /// </summary>
-        /// <param name="root">Root activity id for the current request.</param>
-        /// <returns>If it returns an activity, it will be silently stopped with the parent activity</returns>
-        public static Activity RestoreCurrentActivity(Activity root)
-        {
-            Debug.Assert(root != null);
-
-            // workaround to restore the root activity, because we don't
-            // have a way to change the Activity.Current
-            var childActivity = new Activity(root.OperationName);
-            childActivity.SetParentId(root.Id);
-            childActivity.SetStartTime(root.StartTimeUtc);
-            foreach (var item in root.Baggage)
-            {
-                childActivity.AddBaggage(item.Key, item.Value);
-            }
-
-            childActivity.Start();
-
-            AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(childActivity.Id);
-            return childActivity;
-        }
 
         /// <summary>
         /// Stops the activity and notifies listeners about it.
         /// </summary>
         /// <param name="activity">Activity to stop.</param>
-        /// <param name="context">Current HttpContext.</param>
+        /// <param name="contextItems">HttpContext.Items.</param>
         /// <returns>True if activity was found in the stack, false otherwise.</returns>
-        public static bool StopAspNetActivity(Activity activity, HttpContext context)
+        public static bool StopAspNetActivity(Activity activity, IDictionary contextItems)
         {
             var currentActivity = Activity.Current;
             if (activity != null && currentActivity != null)
@@ -87,11 +70,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
                     if (newCurrentActivity == null)
                     {
-                        break;
+                        return false;
                     }
 
                     // there could be a case when request or any child activity is stopped
-                    // from the child execution context. In this case, Activity is present in the Current Stack, 
+                    // from the child execution context. In this case, Activity is present in the Current Stack,
                     // but is finished, i.e. stopping it has no effect on the Current.
                     if (newCurrentActivity == currentActivity)
                     {
@@ -116,13 +99,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 }
 
                 // if activity is in the stack, stop it with Stop event
-                if (Activity.Current != null)
-                {
-                    AspNetListener.StopActivity(Activity.Current, new { });
-                    RemoveCurrentActivity(context);
-                    AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id);
-                    return true;
-                }
+                AspNetListener.StopActivity(currentActivity, new { });
+                contextItems[ActivityKey] = null;
+
+                AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(currentActivity.Id, currentActivity.OperationName);
+                return true;
             }
 
             return false;
@@ -135,12 +116,21 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// <param name="context">Current HttpContext.</param>
         public static void StopLostActivity(Activity activity, HttpContext context)
         {
-            if (activity != null)
-            {
-                AspNetListener.Write(AspNetActivityLostStopName, new { activity });
-                RemoveCurrentActivity(context);
-                AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id, true);
-            }
+            context.Items[ActivityKey] = null;
+            AspNetListener.Write(AspNetActivityLostStopName, new { activity });
+            AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id, AspNetActivityLostStopName);
+        }
+
+        /// <summary>
+        /// Notifies listeners that there the lost activity was lost during execution and there was an intermediate activity.
+        /// </summary>
+        /// <param name="activity">Activity to notify about.</param>
+        /// <param name="context">Current HttpContext.</param>
+        public static void StopRestoredActivity(Activity activity, HttpContext context)
+        {
+            context.Items[RestoredActivityKey] = null;
+            AspNetListener.Write(AspNetActivityRestoredStopName, new { Activity = activity });
+            AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(activity.Id, AspNetActivityRestoredStopName);
         }
 
         /// <summary>
@@ -152,12 +142,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             if (AspNetListener.IsEnabled() && AspNetListener.IsEnabled(AspNetActivityName))
             {
-                var rootActivity = new Activity(ActivityHelper.AspNetActivityName);
+                var rootActivity = new Activity(AspNetActivityName);
 
                 rootActivity.Extract(context.Request.Unvalidated.Headers);
                 if (StartAspNetActivity(rootActivity))
                 {
-                    SaveCurrentActivity(context, rootActivity);
+                    context.Items[ActivityKey] = rootActivity;
                     AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(rootActivity.Id);
                     return rootActivity;
                 }
@@ -167,16 +157,56 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         /// <summary>
-        /// This should be called after the Activity starts and only for root activity of a request.
+        /// Saves activity in the HttpContext.Items.
         /// </summary>
-        /// <param name="context">Context to save context to.</param>
+        /// <param name="contextItems">Context to save context to.</param>
+        /// <param name="key">Slot name.</param>
         /// <param name="activity">Activity to save.</param>
-        internal static void SaveCurrentActivity(HttpContext context, Activity activity)
+        internal static void SaveCurrentActivity(IDictionary contextItems, string key, Activity activity)
         {
-            Debug.Assert(context != null);
+            Debug.Assert(contextItems != null);
             Debug.Assert(activity != null);
 
-            context.Items[ActivityKey] = activity;
+            contextItems[key] = activity;
+        }
+
+        /// <summary>
+        /// It's possible that a request is executed in both native threads and managed threads,
+        /// in such case Activity.Current will be lost during native thread and managed thread switch.
+        /// This method is intended to restore the current activity in order to correlate the child
+        /// activities with the root activity of the request.
+        /// </summary>
+        /// <param name="contextItems">HttpContext.Items dictionary.</param>
+        internal static void RestoreActivityIfNeeded(IDictionary contextItems)
+        {
+            if (Activity.Current == null)
+            {
+                var rootActivity = (Activity)contextItems[ActivityKey];
+                if (rootActivity != null && !contextItems.Contains(RestoredActivityKey))
+                {
+                    contextItems[RestoredActivityKey] = RestoreActivity(rootActivity);
+                }
+            }
+        }
+
+        private static Activity RestoreActivity(Activity root)
+        {
+            Debug.Assert(root != null);
+
+            // workaround to restore the root activity, because we don't
+            // have a way to change the Activity.Current
+            var childActivity = new Activity(root.OperationName);
+            childActivity.SetParentId(root.Id);
+            childActivity.SetStartTime(root.StartTimeUtc);
+            foreach (var item in root.Baggage)
+            {
+                childActivity.AddBaggage(item.Key, item.Value);
+            }
+
+            childActivity.Start();
+
+            AspNetTelemetryCorrelationEventSource.Log.ActivityRestored(childActivity.Id);
+            return childActivity;
         }
 
         private static bool StartAspNetActivity(Activity activity)
@@ -196,12 +226,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             }
 
             return false;
-        }
-
-        private static void RemoveCurrentActivity(HttpContext context)
-        {
-            Debug.Assert(context != null);
-            context.Items[ActivityKey] = null;
         }
     }
 }

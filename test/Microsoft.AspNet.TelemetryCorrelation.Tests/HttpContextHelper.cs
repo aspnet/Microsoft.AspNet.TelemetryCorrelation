@@ -18,10 +18,15 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Thread.GetDomain().SetData(".appVPath", string.Empty);
 
             var workerRequest = new SimpleWorkerRequestWithHeaders(page, query, new StringWriter(CultureInfo.InvariantCulture), headers);
-
             var context = new HttpContext(workerRequest);
             HttpContext.Current = context;
             return context;
+        }
+
+        public static HttpContextBase GetFakeHttpContextBase(string page = "/page", string query = "", IDictionary<string, string> headers = null)
+        {
+            var context = GetFakeHttpContext(page, query, headers);
+            return new HttpContextWrapper(context);
         }
 
         private class SimpleWorkerRequestWithHeaders : SimpleWorkerRequest

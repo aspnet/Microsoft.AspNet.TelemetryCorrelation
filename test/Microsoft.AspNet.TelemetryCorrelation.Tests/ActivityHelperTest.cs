@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
@@ -15,11 +16,13 @@ using Xunit;
 
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
-    public class ActivityHelperTest
+    public class ActivityHelperTest : IDisposable
     {
         private const string TestActivityName = "Activity.Test";
         private readonly List<KeyValuePair<string, string>> _baggageItems;
         private readonly string _baggageInHeader;
+        private IDisposable subscriptionAllListeners;
+        private IDisposable subscriptionAspNetListener;
 
         public ActivityHelperTest()
         {
@@ -38,9 +41,15 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var aspnetListenerField = typeof(ActivityHelper).
                 GetField("AspNetListener", BindingFlags.Static | BindingFlags.NonPublic);
             aspnetListenerField.SetValue(null, new DiagnosticListener(ActivityHelper.AspNetListenerName));
-        }                
+        }
 
-        #region RestoreCurrentActivity tests
+        public void Dispose()
+        {
+            subscriptionAspNetListener?.Dispose();
+            subscriptionAllListeners?.Dispose();
+        }
+
+        #region RestoreActivity tests
         [Fact]
         public async Task Can_Restore_Activity()
         {
@@ -53,15 +62,84 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             });
             Assert.Null(Activity.Current);
 
-            var restoredActivity = ActivityHelper.RestoreCurrentActivity(rootActivity);
+            ActivityHelper.RestoreActivityIfNeeded(context.Items);
 
-            Assert.NotNull(restoredActivity);
-            Assert.True(rootActivity.Id == restoredActivity.ParentId);
-            Assert.True(!string.IsNullOrEmpty(restoredActivity.Id));
-            var expectedBaggage = _baggageItems.OrderBy(item => item.Value);
-            var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
-            Assert.Equal(expectedBaggage, actualBaggage);
+            AssertIsRestoredActivity(rootActivity, Activity.Current);
         }
+
+
+        [Fact]
+        public void Do_Not_Restore_Activity_When_There_Is_No_Activity_In_Context()
+        {
+            ActivityHelper.RestoreActivityIfNeeded(HttpContextHelper.GetFakeHttpContext().Items);
+
+            Assert.Null(Activity.Current);
+        }
+
+        [Fact]
+        public void Do_Not_Restore_Activity_When_It_Is_Not_Lost()
+        {
+            var root = new Activity("root").Start();
+
+            var context = HttpContextHelper.GetFakeHttpContext();
+            context.Items[ActivityHelper.ActivityKey] = root;
+
+            var module = new TelemetryCorrelationHttpModule();
+
+            ActivityHelper.RestoreActivityIfNeeded(context.Items);
+
+            Assert.Equal(root, Activity.Current);
+        }
+
+        [Fact]
+        public async Task Stop_Restored_Activity_Deletes_It_From_Items()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root");
+
+            await Task.Run(() =>
+            {
+                root.Start();
+                context.Items[ActivityHelper.ActivityKey] = root;
+            });
+
+            ActivityHelper.RestoreActivityIfNeeded(context.Items);
+
+            var child = Activity.Current;
+
+            ActivityHelper.StopRestoredActivity(child, context);
+            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.Null(context.Items[ActivityHelper.RestoredActivityKey]);
+        }
+
+        [Fact]
+        public async Task Stop_Restored_Activity_Fires_Event()
+        {
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var root = new Activity("root");
+
+            await Task.Run(() =>
+            {
+                root.Start();
+                context.Items[ActivityHelper.ActivityKey] = root;
+            });
+
+            ActivityHelper.RestoreActivityIfNeeded(context.Items);
+            Activity restored = Activity.Current;
+
+            var events = new ConcurrentQueue<KeyValuePair<string, object>>();
+            EnableAll((kvp) => events.Enqueue(kvp));
+
+            ActivityHelper.StopRestoredActivity(restored, context);
+
+            Assert.Single(events);
+            string eventName = events.Single().Key;
+            object eventPayload = events.Single().Value;
+
+            Assert.Equal(ActivityHelper.AspNetActivityRestoredStopName, eventName);
+            Assert.Same(restored, eventPayload.GetProperty("Activity"));
+        }
+
         #endregion
 
         #region StopAspNetActivity tests
@@ -72,7 +150,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var rootActivity = CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
-            ActivityHelper.StopAspNetActivity(rootActivity, context);
+            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -87,7 +165,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             rootActivity.Start();
             Thread.Sleep(100);
             EnableAspNetListenerOnly();
-            ActivityHelper.StopAspNetActivity(rootActivity, context);
+            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -104,7 +182,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             new Activity("child").Start();
             new Activity("grandchild").Start();
 
-            ActivityHelper.StopAspNetActivity(rootActivity, context);
+            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -120,7 +198,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var child = new Activity("child").Start();
             new Activity("grandchild").Start();
 
-            ActivityHelper.StopAspNetActivity(child, context);
+            ActivityHelper.StopAspNetActivity(child, context.Items);
 
             Assert.True(child.Duration != TimeSpan.Zero);
             Assert.Equal(rootActivity, Activity.Current);
@@ -132,8 +210,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             var root = new Activity("root").Start();
-            ActivityHelper.SaveCurrentActivity(context, root);
-
+            context.Items[ActivityHelper.ActivityKey] = root;
             new Activity("child").Start();
 
             for (int i = 0; i < 2; i++)
@@ -151,7 +228,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             // do not affect 'parent' context in which Task.Run is called.
             // But 'child' Activity is stopped, thus consequent calls to Stop will
             // not update Current
-            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context.Items));
             Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);
         }
@@ -161,7 +238,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             var root = new Activity("root").Start();
-            ActivityHelper.SaveCurrentActivity(context, root);
+            context.Items[ActivityHelper.ActivityKey] = root;
 
             for (int i = 0; i < 129; i++)
             {
@@ -170,12 +247,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
             // we do not allow more than 128 nested activities here 
             // only to protect from hypothetical cycles in Activity stack
-            Assert.False(ActivityHelper.StopAspNetActivity(root, context));
+            Assert.False(ActivityHelper.StopAspNetActivity(root, context.Items));
 
             Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);
         }
-
         #endregion
 
         #region CreateRootActivity tests
@@ -252,6 +328,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         #endregion
 
         #region Helper methods               
+
+        private void AssertIsRestoredActivity(Activity original, Activity restored)
+        {
+            Assert.NotNull(restored);
+            Assert.Equal(original.RootId, restored.RootId);
+            Assert.Equal(original.Id, restored.ParentId);
+            Assert.Equal(original.StartTimeUtc, restored.StartTimeUtc);
+            Assert.False(string.IsNullOrEmpty(restored.Id));
+            var expectedBaggage = original.Baggage.OrderBy(item => item.Value);
+            var actualBaggage = restored.Baggage.OrderBy(item => item.Value);
+            Assert.Equal(expectedBaggage, actualBaggage);
+        }
+
         private Activity CreateActivity()
         {
             var activity = new Activity(TestActivityName);
@@ -260,15 +349,27 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             return activity;
         }
 
-        private void EnableAspNetListenerAndDisableActivity(Action<KeyValuePair<string, object>> onNext = null,
-            string ActivityName = ActivityHelper.AspNetActivityName)
+        private void EnableAll(Action<KeyValuePair<string, object>> onNext = null)
         {
-            DiagnosticListener.AllListeners.Subscribe(listener =>
+            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    listener.Subscribe(new TestDiagnosticListener(onNext),
+                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), (name) => true);
+                }
+            });
+        }
+
+        private void EnableAspNetListenerAndDisableActivity(Action<KeyValuePair<string, object>> onNext = null,
+            string ActivityName = ActivityHelper.AspNetActivityName)
+        {
+            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
+            {
+                // if AspNetListener has subscription, then it is enabled
+                if (listener.Name == ActivityHelper.AspNetListenerName)
+                {
+                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext),
                         (name, arg1, arg2) => name == ActivityName && arg1 == null);
                 }
             });
@@ -277,12 +378,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         private void EnableAspNetListenerAndActivity(Action<KeyValuePair<string, object>> onNext = null, 
             string ActivityName = ActivityHelper.AspNetActivityName)
         {
-            DiagnosticListener.AllListeners.Subscribe(listener =>
+            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    listener.Subscribe(new TestDiagnosticListener(onNext),
+                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext),
                         (name, arg1, arg2) => name == ActivityName);
                 }
             });
@@ -290,42 +391,20 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         private void EnableAspNetListenerOnly(Action<KeyValuePair<string, object>> onNext = null)
         {
-            DiagnosticListener.AllListeners.Subscribe(listener =>
+            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    listener.Subscribe(new TestDiagnosticListener(onNext), 
+                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), 
                         activityName => false);
                 }
             });
         }
+
         #endregion
 
         #region Helper Class        
-        private class TestDiagnosticListener : IObserver<KeyValuePair<string, object>>
-        {
-            Action<KeyValuePair<string, object>> _onNextCallBack;
-
-            public TestDiagnosticListener(Action<KeyValuePair<string, object>> onNext)
-            {
-                _onNextCallBack = onNext;
-            }
-
-            public void OnCompleted()
-            {                
-            }
-
-            public void OnError(Exception error)
-            {
-            }
-
-            public void OnNext(KeyValuePair<string, object> value)
-            {
-                _onNextCallBack?.Invoke(value);
-            }
-        }
-
         private class TestHttpRequest : HttpRequestBase
         {
             NameValueCollection _headers = new NameValueCollection();
