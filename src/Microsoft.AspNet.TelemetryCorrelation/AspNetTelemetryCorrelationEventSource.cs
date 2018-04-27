@@ -64,6 +64,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             WriteEvent(8, id);
         }
+
+        [Event(9, Message = "Failed to invoke OnExecuteRequestStep, Error='{0}'", Level = EventLevel.Error)]
+        public void OnExecuteRequestStepInvokationError(string error)
+        {
+            WriteEvent(9, error);
+        }
     }
 }
 #pragma warning restore SA1600 // Elements must be documented

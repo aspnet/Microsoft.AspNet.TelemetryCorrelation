@@ -35,9 +35,16 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             // OnExecuteRequestStep is availabile starting with 4.7.1
             // If this is executed in 4.7.1 runtime (regardless of targeted .NET version),
             // we will use it to restore lost activity, otherwise keep PreRequestHandlerExecute
-            if (onStepMethodInfo != null)
+            if (onStepMethodInfo != null && HttpRuntime.UsingIntegratedPipeline)
             {
-                onStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)OnExecuteRequestStep });
+                try
+                {
+                    onStepMethodInfo.Invoke(context, new object[] { (Action<HttpContextBase, Action>)OnExecuteRequestStep });
+                }
+                catch (Exception e)
+                {
+                    AspNetTelemetryCorrelationEventSource.Log.OnExecuteRequestStepInvokationError(e.Message);
+                }
             }
             else
             {
