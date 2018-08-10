@@ -54,6 +54,9 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public async Task Can_Restore_Activity()
         {
             var rootActivity = CreateActivity();
+
+            rootActivity.AddTag("k1", "v1");
+            rootActivity.AddTag("k2", "v2");
             var context = HttpContextHelper.GetFakeHttpContext();
             await Task.Run(() =>
             {
@@ -339,6 +342,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var expectedBaggage = original.Baggage.OrderBy(item => item.Value);
             var actualBaggage = restored.Baggage.OrderBy(item => item.Value);
             Assert.Equal(expectedBaggage, actualBaggage);
+
+            var expectedTags = original.Tags.OrderBy(item => item.Value);
+            var actualTags = restored.Tags.OrderBy(item => item.Value);
+            Assert.Equal(expectedTags, actualTags);
         }
 
         private Activity CreateActivity()
