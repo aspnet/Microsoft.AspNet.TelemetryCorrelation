@@ -4,9 +4,6 @@
   <ItemGroup>
     <AssemblyProject Include="src\Microsoft.AspNet.TelemetryCorrelation\Microsoft.AspNet.TelemetryCorrelation.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <AssemblyProject Include="test\Microsoft.AspNet.TelemetryCorrelation.Tests\Microsoft.AspNet.TelemetryCorrelation.Tests.csproj" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageProject Include="src\Packages\Packages.csproj" />
