@@ -5,6 +5,7 @@
         <AssemblyName>$(MSBuildProjectName)</AssemblyName>
         <NuGetPackageId>$(MSBuildProjectName)</NuGetPackageId>
         <NuSpecFile>$(MSBuildProjectName).nuspec</NuSpecFile>
+        <IsPackage>true</IsPackage>
     </PropertyGroup>
     <ItemGroup>
         <NuGetContent Include="$(AssemblyName).dll">
@@ -24,5 +25,15 @@
             <Destination>content\net45</Destination>
         </NuGetContent>
     </ItemGroup>
-    <Import Project="$(RepositoryRoot)Tools\NuGetProj.targets"/>
+    <Import Project="$(RepositoryRoot)tools\NuGetProj.targets"/>
+    <Target Name="AfterBuild">
+        <PropertyGroup>
+            <OutDir>$(PackageOutputDir)</OutDir>
+        </PropertyGroup>
+        <ItemGroup>
+            <FilesToSign Include="$(NuGetPackTargetFile)" Condition="'$(SignAssembly)' == 'true'">
+                <Authenticode>NuGet</Authenticode>
+            </FilesToSign>
+        </ItemGroup>
+    </Target>
 </Project>

@@ -1,7 +1,7 @@
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <!-- Configurable properties-->
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
     <PropertyGroup>
+        <CustomBeforeProjectTargets>$(MSBuildThisFileDirectory)Microsoft.AspNet.TelemetryCorrelation.Extensions.settings.targets</CustomBeforeProjectTargets>
         <BuildQuality Condition="'$(BuildQuality)' == ''">rtm</BuildQuality>
         <VersionStartYear>2018</VersionStartYear>
         <VersionMajor>1</VersionMajor>
@@ -14,12 +14,13 @@
         <DiagnosticSourceNuGetPackageVersion>4.4.0</DiagnosticSourceNuGetPackageVersion>
     </PropertyGroup>
 
-    <!-- Default properties -->
 
     <PropertyGroup>
-        <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), Microsoft.AspNet.TelemetryCorrelation.sln))\</RepositoryRoot>
+        <RepositoryRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Microsoft.AspNet.TelemetryCorrelation.sln'))\</RepositoryRoot>
     </PropertyGroup>
 
+    <Import Project="$(CustomBeforeProjectTargets)" Condition="Exists('$(CustomBeforeProjectTargets)')" Label="Pre-targets Build Extensibility Point"/>
+  
     <PropertyGroup Label="Common Configuration">
         <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
         <OutputPath>$(RepositoryRoot)bin\$(Configuration)\</OutputPath>
