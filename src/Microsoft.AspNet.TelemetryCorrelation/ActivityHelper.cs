@@ -203,6 +203,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 childActivity.AddBaggage(item.Key, item.Value);
             }
 
+            foreach (var item in root.Tags)
+            {
+                childActivity.AddTag(item.Key, item.Value);
+            }
+
             childActivity.Start();
 
             AspNetTelemetryCorrelationEventSource.Log.ActivityRestored(childActivity.Id);
