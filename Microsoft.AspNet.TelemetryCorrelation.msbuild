@@ -21,7 +21,7 @@
 
   <!-- Core build-->
 
-  <Target Name="BuildAssemblies" DependsOnTargets="RestorePackages">
+  <Target Name="BuildAssemblies">
     <MSBuild Targets="Build" Projects="@(AssemblyProject)" />
   </Target>
 
@@ -33,7 +33,7 @@
 
   <!-- Packages build -->
 
-  <Target Name="BuildPackages" DependsOnTargets="RestorePackages">
+  <Target Name="BuildPackages">
     <MSBuild Targets="" Projects="@(PackageProject)" />
   </Target>
 
@@ -42,10 +42,6 @@
   </Target>
 
   <Target Name="RebuildPackages" DependsOnTargets="CleanPackages;BuildPackages" />
-
-  <Target Name="RestorePackages">
-    <Exec Command=".nuget\NuGet.exe restore" />
-  </Target>
 
   <Import Project="tools\Microsoft.AspNet.TelemetryCorrelation.targets" />
 </Project>
