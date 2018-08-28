@@ -35,7 +35,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                           </modules>
                         </system.webServer>
                       </location>
+                      <system.web>
+                        <httpModules>
+                          <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                        </httpModules >
+                      </system.web>
                       <system.webServer>
+                        <validation validateIntegratedModeConfiguration=""false"" />
                         <modules>
                           <remove name=""TelemetryCorrelationHttpModule"" />
                           <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
@@ -60,6 +66,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                             </system.webServer>
                         </location>
                         <location path="".""> 
+                            <system.web>
+                              <httpModules>
+                                <add name=""abc"" type=""type"" />
+                              </httpModules >
+                            </system.web>
                             <system.webServer>
                                 <modules>
                                     <add name=""abc"" type=""type""/>
@@ -78,16 +89,23 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                             </system.webServer>
                         </location>
                         <location path=""."">
+                            <system.web>
+                              <httpModules>
+                                <add name=""abc"" type=""type"" />
+                                <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                              </httpModules >
+                            </system.web>
                             <system.webServer>
                                 <modules>
                                     <add name=""abc"" type=""type"" />
                                     <remove name=""TelemetryCorrelationHttpModule"" />
                                     <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
                                 </modules>
+                                <validation validateIntegratedModeConfiguration=""false"" />
                             </system.webServer>
                         </location>
-                        <system.webServer>
-                        </system.webServer>
+                        <system.web></system.web>
+                        <system.webServer></system.webServer>
                     </configuration>";
 
             var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
@@ -100,6 +118,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             const string OriginalWebConfigContent = @"
                     <configuration> 
                         <location path="".""> 
+                            <system.web>
+                              <httpModules>
+                                <add name=""abc"" type=""type"" />
+                              </httpModules >
+                            </system.web>
                             <system.webServer>
                                 <modules>
                                     <add name=""abc"" type=""type""/>
@@ -113,16 +136,23 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location path=""."">
+                        <system.web>
+                          <httpModules>
+                            <add name=""abc"" type=""type"" />
+                            <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                          </httpModules >
+                        </system.web>
                         <system.webServer>
                           <modules>
                             <add name=""abc"" type=""type"" />
                             <remove name=""TelemetryCorrelationHttpModule"" />
                             <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
                           </modules>
+                          <validation validateIntegratedModeConfiguration=""false"" />
                         </system.webServer>
                       </location>
-                      <system.webServer>
-                      </system.webServer>
+                      <system.webServer></system.webServer>
+                      <system.web></system.web>
                     </configuration>";
 
             var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
@@ -134,7 +164,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             const string OriginalWebConfigContent = @"
                     <configuration> 
-                        <location> 
+                        <location>
+                            <system.web>
+                              <httpModules>
+                                <add name=""abc"" type=""type"" />
+                              </httpModules >
+                            </system.web>
                             <system.webServer>
                                 <modules>
                                     <add name=""abc"" type=""type""/>
@@ -146,16 +181,23 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             const string ExpectedWebConfigContent = @"
                     <configuration>
                       <location>
+                        <system.web>
+                          <httpModules>
+                            <add name=""abc"" type=""type"" />
+                            <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                          </httpModules>
+                        </system.web>
                         <system.webServer>
                           <modules>
                             <add name=""abc"" type=""type"" />
                             <remove name=""TelemetryCorrelationHttpModule"" />
                             <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
                           </modules>
+                          <validation validateIntegratedModeConfiguration=""false"" />
                         </system.webServer>
                       </location>
-                      <system.webServer>
-                      </system.webServer>
+                      <system.web></system.web>
+                      <system.webServer></system.webServer>
                     </configuration>";
 
             var transformedWebConfig = this.ApplyInstallTransformation(OriginalWebConfigContent, InstallConfigTransformationResourceName);
@@ -183,8 +225,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                     <configuration>
                       <location path=""."">
                         <system.web> 
+                          <httpModules>
+                            <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                          </httpModules>
                         </system.web> 
                         <system.webServer>
+                          <validation validateIntegratedModeConfiguration=""false"" />
                           <modules>
                             <remove name=""TelemetryCorrelationHttpModule"" />
                             <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
@@ -218,14 +264,20 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                     <configuration>
                       <location>
                         <system.web>
+                          <httpModules>
+                            <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                          </httpModules>
                         </system.web>
                         <system.webServer>
+                          <validation validateIntegratedModeConfiguration=""false"" />
                           <modules>
                             <remove name=""TelemetryCorrelationHttpModule"" />
                             <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
                           </modules>
                         </system.webServer>
                       </location>
+                      <system.web>
+                      </system.web>
                       <system.webServer>
                       </system.webServer>
                     </configuration>";
@@ -263,11 +315,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                         <system.web>
                         </system.web>
                         <system.webServer>
+                            <validation validateIntegratedModeConfiguration=""false"" />
                         </system.webServer>
                       </location>
                       <system.web> 
                           <httpModules> 
                               <add name=""abc"" type=""type"" /> 
+                              <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
                           </httpModules> 
                       </system.web> 
                       <system.webServer>
@@ -290,6 +344,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                     <configuration> 
                         <location> 
                         </location> 
+                        <system.web> 
+                          <httpModules> 
+                            <add name=""abc"" type=""type"" /> 
+                          </httpModules> 
+                        </system.web> 
                         <system.webServer>
                             <modules>
                                 <add name=""abc"" type=""type""/>
@@ -301,12 +360,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                     <configuration>
                       <location>
                       </location>
+                      <system.web> 
+                          <httpModules> 
+                              <add name=""abc"" type=""type"" /> 
+                              <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" />
+                          </httpModules> 
+                      </system.web> 
                       <system.webServer>
                         <modules>
                           <add name=""abc"" type=""type"" />
                           <remove name=""TelemetryCorrelationHttpModule"" />
                           <add name=""TelemetryCorrelationHttpModule"" type=""Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"" preCondition=""managedHandler"" />
                         </modules>
+                        <validation validateIntegratedModeConfiguration=""false"" />
                       </system.webServer>
                     </configuration>";
 
