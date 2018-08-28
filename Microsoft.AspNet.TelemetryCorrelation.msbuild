@@ -1,19 +1,11 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="tools\Microsoft.AspNet.TelemetryCorrelation.settings.targets"/>
-
   <ItemGroup>
     <AssemblyProject Include="src\Microsoft.AspNet.TelemetryCorrelation\Microsoft.AspNet.TelemetryCorrelation.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <AssemblyProject Include="test\Microsoft.AspNet.TelemetryCorrelation.Tests\Microsoft.AspNet.TelemetryCorrelation.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageProject Include="src\Packages\Packages.csproj" />
   </ItemGroup>
-
-  <!-- Composite targets -->
-  <Target Name="BuildCI" DependsOnTargets="Clean;Build" />
 
   <Target Name="Build" DependsOnTargets="BuildAssemblies;BuildPackages" />
   <Target Name="Clean" DependsOnTargets="CleanPackages;CleanAssemblies" />

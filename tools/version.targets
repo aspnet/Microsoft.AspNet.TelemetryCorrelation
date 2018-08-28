@@ -16,7 +16,7 @@ Project global versioning targets.
   </PropertyGroup>
 
   <PropertyGroup>
-    <VersionStartYear Condition="'$(VersionStartYear)' == ''">2013</VersionStartYear>
+    <VersionStartYear Condition="'$(VersionStartYear)' == ''">2016</VersionStartYear>
     <VersionMajor Condition="'$(VersionMajor)' == ''">INVALID_VersionMajor</VersionMajor>
     <VersionMinor Condition="'$(VersionMinor)' == ''">INVALID_VersionMinor</VersionMinor>
     <VersionBuild Condition="'$(VersionBuild)' == '' OR '$(VersionBuild)' == '0'">$([MSBuild]::Add(1, $([MSBuild]::Subtract($([System.DateTime]::Now.Year), $(VersionStartYear)))))$([System.DateTime]::Now.ToString("MMdd"))</VersionBuild>
@@ -27,7 +27,7 @@ Project global versioning targets.
   <!-- Comptued parameters -->
 
   <PropertyGroup>
-    <AssemblyVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease).$(VersionRevision)</AssemblyVersion>
+    <AssemblyVersion>$(VersionMajor).$(VersionMinor).0.$(VersionRevision)</AssemblyVersion>
     <AssemblyFileVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)</AssemblyFileVersion>
     <AssemblyInfoVersion Condition="'$(VersionRelease)' != ''">$(VersionMajor).$(VersionMinor).$(VersionRelease)-$(VersionBuild)</AssemblyInfoVersion>
     <AssemblyInfoVersion Condition="'$(AssemblyInfoVersion)' == ''">$(AssemblyFileVersion)</AssemblyInfoVersion>
@@ -36,6 +36,7 @@ Project global versioning targets.
 
   <PropertyGroup>
     <NuGetPackageVersion Condition="'$(NuGetPackageVersion)' == ''">$(VersionMajor).$(VersionMinor).$(VersionRelease)</NuGetPackageVersion>
+    <NuGetPackageVersion Condition="'$(BuildQuality)' != 'rtm'">$(NuGetPackageVersion)-$(BuildQuality)</NuGetPackageVersion>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(VersionFileGenerationEnabled)' == 'true'">
@@ -104,7 +105,7 @@ Project global versioning targets.
     <PropertyGroup>
       <VersionMajor>$([System.Convert]::ToInt16('$(VersionMajor)'))</VersionMajor>
       <VersionMinor>$([System.Convert]::ToInt16('$(VersionMinor)'))</VersionMinor>
-      <VersionBuild>$([System.Convert]::ToInt32('$(VersionBuild)'))</VersionBuild>
+      <VersionBuild>$([System.Convert]::ToInt16('$(VersionBuild)'))</VersionBuild>
       <VersionRevision>$([System.Convert]::ToInt16('$(VersionRevision)'))</VersionRevision>
     </PropertyGroup>
   </Target>

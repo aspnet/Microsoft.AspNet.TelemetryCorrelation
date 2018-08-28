@@ -5,14 +5,5 @@
         <NuGetPackageVersion Condition="'$(UpdateNightlyPackages)' == 'true'">$(NuGetPackageVersion)-b$(VersionBuild)</NuGetPackageVersion>
     </PropertyGroup>
   
-    <ItemGroup>
-      <NuGetInstallScripts Include="$(RepositoryRootEx)src\Packages\Microsoft.AspNet.TelemetryCorrelation\tools\*.ps1"/>
-    </ItemGroup>
 
-    <Target Name="CopyInstallScripts">
-        <Copy SourceFiles="@(NuGetInstallScripts)"
-              DestinationFolder="$(AssemblyPath)"
-        />
-    </Target>
-    
 </Project>
