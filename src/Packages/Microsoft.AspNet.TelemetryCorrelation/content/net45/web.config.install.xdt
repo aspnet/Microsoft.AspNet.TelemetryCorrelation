@@ -17,9 +17,9 @@
     <modules xdt:Transform="InsertIfMissing">
       <remove name="TelemetryCorrelationHttpModule" xdt:Transform="InsertIfMissing" xdt:Locator="Match(name)"/>
       <add name="TelemetryCorrelationHttpModule" type="Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"
-           preCondition="integratedMode,managedHandler" xdt:Transform="Remove" xdt:Locator="Match(type)"/>
+           preCondition="managedHandler" xdt:Transform="Remove" xdt:Locator="Match(type)"/>
       <add name="TelemetryCorrelationHttpModule" type="Microsoft.AspNet.TelemetryCorrelation.TelemetryCorrelationHttpModule, Microsoft.AspNet.TelemetryCorrelation"
-           preCondition="integratedMode,managedHandler" xdt:Transform="InsertIfMissing" xdt:Locator="Match(type)"/>
+           preCondition="managedHandler" xdt:Transform="InsertIfMissing" xdt:Locator="Match(type)"/>
     </modules>
   </system.webServer>
 </configuration>
