@@ -26,6 +26,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         internal const string CorrelationContextHeaderName = "Correlation-Context";
 
         /// <summary>
+        /// Maximum length of Correlation-Context herader value.
+        /// </summary>
+        internal const int MaxCorrelationContextLength = 1024;
+
+        /// <summary>
         /// Reads Request-Id and Correlation-Context headers and sets ParentId and Baggage on Activity.
         /// </summary>
         /// <param name="activity">Instance of activity that has not been started yet.</param>
@@ -61,11 +66,24 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
                 if (baggages != null)
                 {
+                    int correlationContextLength = -1;
                     // there may be several Correlation-Context header
                     foreach (var item in baggages)
                     {
+                        if (correlationContextLength >= MaxCorrelationContextLength)
+                        {
+                            break;
+                        }
+
                         foreach (var pair in item.Split(','))
                         {
+                            correlationContextLength += pair.Length + 1; // pair and comma
+
+                            if (correlationContextLength >= MaxCorrelationContextLength)
+                            {
+                                break;
+                            }
+
                             if (NameValueHeaderValue.TryParse(pair, out NameValueHeaderValue baggageItem))
                             {
                                 activity.AddBaggage(baggageItem.Name, baggageItem.Value);
