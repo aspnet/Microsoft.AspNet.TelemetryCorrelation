@@ -67,6 +67,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 if (baggages != null)
                 {
                     int correlationContextLength = -1;
+
                     // there may be several Correlation-Context header
                     foreach (var item in baggages)
                     {
