@@ -94,7 +94,8 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />  
   <Import Project="..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
   <Target Name="TestMessage" AfterTargets="Build" >
-    <Message Text="$(SignAssembly)" Importance="high"/>
+    <Message Text=" $(TargetPath)" Importance="high"/>
+    <Message Text=" $(SignAssembly)" Importance="high"/>
   </Target>
   <Target Name="AfterBuild">
     <Message Text="AfterBuild" Importance="high"/>
