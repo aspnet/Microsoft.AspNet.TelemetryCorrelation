@@ -1,13 +1,13 @@
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <RepositoryRootEx Condition="'$(RepositoryRootEx)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\</RepositoryRootEx>
+    <RepositoryRoot Condition="'$(RepositoryRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\</RepositoryRoot>
   </PropertyGroup>
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-    <BinPath>$(RepositoryRootEx)bin\</BinPath>
-    <ObjPath>$(RepositoryRootEx)obj\</ObjPath>
+    <BinPath>$(RepositoryRoot)bin\</BinPath>
+    <ObjPath>$(RepositoryRoot)obj\</ObjPath>
     <OutputPath>$(BinPath)$(Configuration)\</OutputPath>
     <IntermediateOutputPath>$(ObjPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
   </PropertyGroup>
@@ -45,8 +45,8 @@
   
     <PropertyGroup Label="Common Configuration">
         <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-        <OutputPath>$(RepositoryRootEx)bin\$(Configuration)\</OutputPath>
-        <IntermediateOutputPath>$(RepositoryRootEx)obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+        <OutputPath>$(RepositoryRoot)bin\$(Configuration)\</OutputPath>
+        <IntermediateOutputPath>$(RepositoryRoot)obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
     </PropertyGroup>
 
     <ItemDefinitionGroup>
