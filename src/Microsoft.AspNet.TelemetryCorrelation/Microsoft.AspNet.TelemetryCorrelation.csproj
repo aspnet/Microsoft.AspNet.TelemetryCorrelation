@@ -99,6 +99,9 @@
   </Target>
   <Target Name="AfterBuild">
     <Message Text="AfterBuild" Importance="high"/>
+    <Message Text=" $(TargetPath)" Importance="high"/>
+    <Message Text=" $(SignAssembly)" Importance="high"/>
+    
     <ItemGroup>
       <FilesToSign Include="$(TargetPath)" Condition="'$(SignAssembly)' == 'true'">
         <Authenticode>Microsoft</Authenticode>

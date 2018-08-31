@@ -36,6 +36,9 @@
     </Target>
     <Import Project="..\..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
     <Target Name="AfterBuild">
+        <Message Text="nupkgAfterBuild" Importance="high"/>
+        <Message Text=" $(NuGetPackTargetFile)" Importance="high"/>
+        <Message Text=" $(SignAssembly)" Importance="high"/>
         <PropertyGroup>
             <OutDir>$(PackageOutputDir)</OutDir>
         </PropertyGroup>
