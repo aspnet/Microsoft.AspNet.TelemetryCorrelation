@@ -1,0 +1,60 @@
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <RepositoryRootEx Condition="'$(RepositoryRootEx)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\</RepositoryRootEx>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+    <BinPath>$(RepositoryRootEx)bin\</BinPath>
+    <ObjPath>$(RepositoryRootEx)obj\</ObjPath>
+    <OutputPath>$(BinPath)$(Configuration)\</OutputPath>
+    <IntermediateOutputPath>$(ObjPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AssemblyPath Condition="'$(CodeSignEnabled)' == 'true'">$(CodeSignOutputPath)</AssemblyPath>
+    <AssemblyPath Condition="'$(AssemblyPath)' == ''">$(OutputPath)</AssemblyPath>
+  </PropertyGroup>
+
+
+    <PropertyGroup>
+      <BuildQuality Condition="'$(BuildQuality)' == ''">rtm</BuildQuality>
+      <VersionStartYear>2018</VersionStartYear>
+      <VersionMajor>1</VersionMajor>
+      <VersionMinor>0</VersionMinor>
+      <VersionRelease>4</VersionRelease>
+
+      <VersionBuild Condition="'$(VersionBuild)' == '' OR '$(VersionBuild)' == '0'">$([MSBuild]::Add(1, $([MSBuild]::Subtract($([System.DateTime]::Now.Year), $(VersionStartYear)))))$([System.DateTime]::Now.ToString("MMdd"))</VersionBuild>
+      <VersionRevision Condition="'$(VersionRevision)' == ''">0</VersionRevision>
+      <VersionRelease Condition="'$(VersionRelease)' == ''">0</VersionRelease>
+
+      <CustomBeforeProjectTargets>$(MSBuildThisFileDirectory)Microsoft.AspNet.TelemetryCorrelation.Extensions.settings.targets</CustomBeforeProjectTargets>
+      <VersionRelease Condition="'$(BuildQuality)' != 'rtm'">$(VersionRelease)-$(BuildQuality)</VersionRelease>
+    </PropertyGroup>
+
+    <PropertyGroup>
+      <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionRelease)</VersionPrefix>
+      <VersionSuffix Condition="'$(BuildQuality)' != 'rtm'">-$(BuildQuality)</VersionSuffix>
+      <FileVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)</FileVersion>
+      <InformationalVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease)-$(VersionBuild)</InformationalVersion>
+      <AssemblyVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease).0</AssemblyVersion>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <RepositoryRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Microsoft.AspNet.TelemetryCorrelation.sln'))\</RepositoryRoot>
+    </PropertyGroup>
+
+    <Import Project="$(CustomBeforeProjectTargets)" Condition="Exists('$(CustomBeforeProjectTargets)')" Label="Pre-targets Build Extensibility Point"/>
+  
+    <PropertyGroup Label="Common Configuration">
+        <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
+        <OutputPath>$(RepositoryRoot)bin\$(Configuration)\</OutputPath>
+        <IntermediateOutputPath>$(RepositoryRoot)obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.TelemetryCorrelation.targets</CustomAfterMicrosoftCommonTargets>
+        <CustomAfterNuGetProjTargets>$(CustomAfterMicrosoftCommonTargets)</CustomAfterNuGetProjTargets>
+    </PropertyGroup>
+</Project>
