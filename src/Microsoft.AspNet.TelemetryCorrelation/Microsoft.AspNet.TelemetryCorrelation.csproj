@@ -17,12 +17,12 @@
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(PUBLIC_RELEASE)' == 'True' ">
+  <PropertyGroup Condition=" '$(PublicRelease)' == 'True' ">
     <DelaySign>true</DelaySign>
     <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
     <DefineConstants>$(DefineConstants);PUBLIC_RELEASE</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(PUBLIC_RELEASE)' != 'True' ">
+  <PropertyGroup Condition=" '$(PublicRelease)' != 'True' ">
     <DelaySign>false</DelaySign>
     <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\Debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

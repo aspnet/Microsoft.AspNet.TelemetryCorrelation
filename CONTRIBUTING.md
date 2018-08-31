@@ -21,5 +21,5 @@ dotnet pack .\Microsoft.AspNet.TelemetryCorrelation.sln
 
 Follow readme to install http module to your application.
 
-Set `set PUBLIC_RELEASE=True` before build to produce delay-signed
+Set `set PublicRelease=True` before build to produce delay-signed
 assembly with the public key matching released version of assembly.
