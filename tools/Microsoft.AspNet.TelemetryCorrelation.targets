@@ -22,7 +22,6 @@
             <NuSpecProperties>
                 NuGetPackageVersion=$(NuGetPackageVersion);
                 NuGetPackageId=$(NuGetPackageId);
-                DiagnosticSourceNuGetPackageVersion=$(DiagnosticSourceNuGetPackageVersion)
             </NuSpecProperties>
         </PropertyGroup>
     </Target>

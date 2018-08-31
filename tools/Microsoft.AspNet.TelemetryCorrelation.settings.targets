@@ -10,11 +10,6 @@
         <VersionRelease Condition="'$(BuildQuality)' != 'rtm'">$(VersionRelease)-$(BuildQuality)</VersionRelease>
     </PropertyGroup>
 
-    <PropertyGroup Label="NuGet package dependencies">
-        <DiagnosticSourceNuGetPackageVersion>4.5.0</DiagnosticSourceNuGetPackageVersion>
-    </PropertyGroup>
-
-
     <PropertyGroup>
         <RepositoryRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Microsoft.AspNet.TelemetryCorrelation.sln'))\</RepositoryRoot>
     </PropertyGroup>

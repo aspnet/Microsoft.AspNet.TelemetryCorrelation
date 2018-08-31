@@ -1,105 +1,92 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk">
   <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Microsoft.AspNet.TelemetryCorrelation.settings.targets" />
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{4C8E592C-C532-4CF2-80EF-3BDD0D788D12}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.AspNet.TelemetryCorrelation</RootNamespace>
     <AssemblyName>Microsoft.AspNet.TelemetryCorrelation</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworks>net45</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
     <DelaySign>true</DelaySign>
     <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <CodeAnalysisRuleSet>Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
+    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <DefineConstants>$(DefineConstants);DEBUG;TRACE</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <CodeAnalysisRuleSet>Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
+    <DefineConstants>$(DefineConstants);TRACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <DebugSymbols>true</DebugSymbols>
+    <Company>Microsoft</Company>
+    <!--https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets-->
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <IncludeSymbols>True</IncludeSymbols>
+    <!--PackageOutputPath>Defined in Directory.Build.props</PackageOutputPath-->
+    <PackageId>Microsoft.AspNet.TelemetryCorrelation</PackageId>
+    <!--PackageVersion is defined in GlobalStaticVersion.props-->
+    <!--PackageVersion></PackageVersion-->
+    <Authors>Microsoft</Authors>
+    <Owners>Microsoft,aspnet</Owners>
+    <Title>Microsoft Asp.Net telemetry correlation</Title>
+    <Description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</Description>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>http://www.microsoft.com/web/webpi/eula/net_library_eula_ENU.htm</PackageLicenseUrl>
+    <PackageProjectUrl>http://www.asp.net/</PackageProjectUrl>
+    <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
+    <PackageTags>Diagnostics DiagnosticSource Correlation Activity ASP.NET</PackageTags>
+    <PackageReleaseNotes>
+      You should not use this nuget package for Win Phone, WinStore and UWP applications. It is not supported starting 2.0.0.
+      For the release notes please follow http://go.microsoft.com/fwlink/?LinkId=535037
+    </PackageReleaseNotes>
+    <RepositoryUrl>https://github.com/Microsoft/ApplicationInsights-dotnet</RepositoryUrl>
+    <RepositoryType>Git</RepositoryType>
+    <PackageType>Dependency</PackageType>
+    <ContentTargetFolders>content</ContentTargetFolders>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Diagnostics.DiagnosticSource.4.5.0\lib\net45\System.Diagnostics.DiagnosticSource.dll</HintPath>
-    </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ActivityExtensions.cs" />
-    <Compile Include="ActivityHelper.cs" />
-    <Compile Include="TelemetryCorrelationHttpModule.cs" />
-    <Compile Include="AspNetTelemetryCorrelationEventSource.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
+    <!--
+    <PackageReference Include="Desktop.Analyzers" Version="1.1.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>    
+    -->
+    <PackageReference Include="StyleCop.Analyzers" Version="1.0.2">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="MicroBuild.Core" Version="0.3.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Diagnostics.Tracing.EventRegister" Version="1.1.28" Condition="$(OS) == 'Windows_NT'">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Microsoft.AspNet.TelemetryCorrelation.ruleset" />
-    <None Include="packages.config"/>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="35MSSharedLib1024.snk" />
   </ItemGroup>
   <ItemGroup>
-    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\Newtonsoft.Json.dll" />
-    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.CodeFixes.dll" />
-    <Analyzer Include="..\..\packages\StyleCop.Analyzers.1.0.0\analyzers\dotnet\cs\StyleCop.Analyzers.dll" />
+    <Content Include="web.config.install.xdt" />
+    <Content Include="web.config.uninstall.xdt" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\..\packages\Microsoft.Diagnostics.Tracing.EventRegister.1.1.28\build\Microsoft.Diagnostics.Tracing.EventRegister.targets" Condition="Exists('..\..\packages\Microsoft.Diagnostics.Tracing.EventRegister.1.1.28\build\Microsoft.Diagnostics.Tracing.EventRegister.targets')" />
-  
- 
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\..\packages\Microsoft.Diagnostics.Tracing.EventRegister.1.1.28\build\Microsoft.Diagnostics.Tracing.EventRegister.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Microsoft.Diagnostics.Tracing.EventRegister.1.1.28\build\Microsoft.Diagnostics.Tracing.EventRegister.targets'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props'))" />
-    <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets'))" />
-  </Target>
-  <Import Project="..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
-  <Target Name="AddToSign"  AfterTargets="AfterBuild">
-    <ItemGroup>
-      <FilesToSign Include="$(TargetPath)" Condition="'$(SignAssembly)' == 'true'">
-        <Authenticode>Microsoft</Authenticode>
-        <StrongName>MsSharedLib72</StrongName>
-      </FilesToSign>
-    </ItemGroup>
-
-    <Message Text="FilesToSign: %(FilesToSign.Identity); %(FilesToSign.Authenticode); %(FilesToSign.StrongName)" Importance="high"/>
-  </Target>
 </Project>

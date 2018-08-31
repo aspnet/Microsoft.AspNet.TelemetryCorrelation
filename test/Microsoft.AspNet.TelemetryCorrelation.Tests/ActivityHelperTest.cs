@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using Xunit;
+using Microsoft.AspNet.TelemetryCorrelation;
 
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {

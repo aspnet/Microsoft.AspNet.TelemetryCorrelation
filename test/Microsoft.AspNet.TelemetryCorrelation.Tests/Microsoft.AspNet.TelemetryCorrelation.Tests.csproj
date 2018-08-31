@@ -96,16 +96,16 @@
   <ItemGroup>
     <None Include="35MSSharedLib1024.snk" />
     <None Include="packages.config" />
-    <EmbeddedResource Include="..\..\src\Packages\Microsoft.AspNet.TelemetryCorrelation\content\net45\web.config.install.xdt">
+    <EmbeddedResource Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\web.config.install.xdt">
       <Link>Resources\web.config.install.xdt</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\..\src\Packages\Microsoft.AspNet.TelemetryCorrelation\content\net45\web.config.uninstall.xdt">
+    <EmbeddedResource Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\web.config.uninstall.xdt">
       <Link>Resources\web.config.uninstall.xdt</Link>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="35MSSharedLib1024.snk" />
-  </ItemGroup>  
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
