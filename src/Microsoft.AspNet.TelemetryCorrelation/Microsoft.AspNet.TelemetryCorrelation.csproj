@@ -91,15 +91,15 @@
     <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.props'))" />
     <Error Condition="!Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets'))" />
   </Target>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />  
   <Import Project="..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets" Condition="Exists('..\..\packages\MicroBuild.Core.0.3.0\build\MicroBuild.Core.targets')" />
-  <Target Name="AddToSign"  AfterTargets="AfterBuild">
+  <Target Name="AfterBuild">
     <ItemGroup>
       <FilesToSign Include="$(TargetPath)" Condition="'$(SignAssembly)' == 'true'">
         <Authenticode>Microsoft</Authenticode>
         <StrongName>MsSharedLib72</StrongName>
       </FilesToSign>
+      <Message Text="FilesToSign: %(FilesToSign.Identity); %(FilesToSign.Authenticode); %(FilesToSign.StrongName)" Importance="high"/>
     </ItemGroup>
-
-    <Message Text="FilesToSign: %(FilesToSign.Identity); %(FilesToSign.Authenticode); %(FilesToSign.StrongName)" Importance="high"/>
   </Target>
 </Project>
