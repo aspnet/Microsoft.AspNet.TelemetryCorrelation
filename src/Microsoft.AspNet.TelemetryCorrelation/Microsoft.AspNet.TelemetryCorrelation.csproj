@@ -1,5 +1,5 @@
 ﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Microsoft.AspNet.TelemetryCorrelation.settings.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Common.props" />
   <PropertyGroup>
     <ProjectGuid>{4C8E592C-C532-4CF2-80EF-3BDD0D788D12}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -67,11 +67,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <!--
     <PackageReference Include="Desktop.Analyzers" Version="1.1.0">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>    
-    -->
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
@@ -85,7 +83,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Microsoft.AspNet.TelemetryCorrelation.ruleset" />
-    <None Include="35MSSharedLib1024.snk" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="web.config.install.xdt"/>
