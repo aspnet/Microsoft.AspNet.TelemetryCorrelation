@@ -9,8 +9,6 @@
     <TargetFrameworks>net45</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <SignAssembly>true</SignAssembly>
-    <DelaySign>true</DelaySign>
-    <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <CodeAnalysisRuleSet>Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
@@ -18,6 +16,15 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(PUBLIC_RELEASE)' == 'True' ">
+    <DelaySign>true</DelaySign>
+    <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
+    <DefineConstants>$(DefineConstants);PUBLIC_RELEASE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(PUBLIC_RELEASE)' != 'True' ">
+    <DelaySign>false</DelaySign>
+    <AssemblyOriginatorKeyFile>$(RepositoryRoot)tools\Debug.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugType>full</DebugType>
