@@ -41,20 +41,21 @@
       <AssemblyVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease).0</AssemblyVersion>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepositoryRoot>$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'Microsoft.AspNet.TelemetryCorrelation.sln'))\</RepositoryRoot>
-    </PropertyGroup>
-
     <Import Project="$(CustomBeforeProjectTargets)" Condition="Exists('$(CustomBeforeProjectTargets)')" Label="Pre-targets Build Extensibility Point"/>
   
     <PropertyGroup Label="Common Configuration">
         <Configuration Condition="'$(Configuration)' == ''">Release</Configuration>
-        <OutputPath>$(RepositoryRoot)bin\$(Configuration)\</OutputPath>
-        <IntermediateOutputPath>$(RepositoryRoot)obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
+        <OutputPath>$(RepositoryRootEx)bin\$(Configuration)\</OutputPath>
+        <IntermediateOutputPath>$(RepositoryRootEx)obj\$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <CustomAfterMicrosoftCommonTargets>$(RepositoryRoot)tools\Microsoft.AspNet.TelemetryCorrelation.targets</CustomAfterMicrosoftCommonTargets>
-        <CustomAfterNuGetProjTargets>$(CustomAfterMicrosoftCommonTargets)</CustomAfterNuGetProjTargets>
-    </PropertyGroup>
+    <ItemDefinitionGroup>
+      <FilesToSign>
+        <!-- Microsoft authenticode certificate for all file types -->
+        <Authenticode Condition="'%(FilesToSign.Authenticode)' == ''">Microsoft</Authenticode>
+        <!-- Microsoft strong-name key for managed assemblies -->
+        <StrongName Condition="'$(TargetExt)' == '.winmdobj' OR '$(TargetExt)' == '.dll' OR '$(TargetExt)' == '.exe'">MsSharedLib72</StrongName>
+      </FilesToSign>
+    </ItemDefinitionGroup>
+
 </Project>
