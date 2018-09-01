@@ -1,13 +1,10 @@
 ﻿<Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk">
-  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Microsoft.AspNet.TelemetryCorrelation.settings.props" />
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),Microsoft.AspNet.TelemetryCorrelation.sln))\tools\Common.props" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{9FAE5C43-F56C-4D87-A23C-6D2D57B4ABED}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.AspNet.TelemetryCorrelation.Tests</RootNamespace>
-    <AssemblyName>Microsoft.AspNet.TelemetryCorrelation.Tests</AssemblyName>
     <TargetFrameworks>net452</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <ErrorReport>prompt</ErrorReport>
@@ -72,17 +69,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="35MSSharedLib1024.snk" />
-    <None Include="packages.config" />
     <EmbeddedResource Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\web.config.install.xdt">
       <Link>Resources\web.config.install.xdt</Link>
     </EmbeddedResource>
     <EmbeddedResource Include="..\..\src\Microsoft.AspNet.TelemetryCorrelation\web.config.uninstall.xdt">
       <Link>Resources\web.config.uninstall.xdt</Link>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="35MSSharedLib1024.snk" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

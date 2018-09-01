@@ -52,7 +52,7 @@ See http protocol [specifications][http-protocol-specification] for
 details.
 
 This http module is used by Application Insights. See
-[documentation][usage-in-ai-code-docs] and [code][usage-in-ai-code].
+[documentation][usage-in-ai-docs] and [code][usage-in-ai-code].
 
 [http-protocol-specification]: https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md
 [usage-in-ai-docs]: https://docs.microsoft.com/azure/application-insights/application-insights-correlation
