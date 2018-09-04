@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.IO;
-using System.Xml.Linq;
-using Microsoft.Web.XmlTransform;
-using Xunit;
-
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
+    using System.IO;
+    using System.Xml.Linq;
+    using Microsoft.Web.XmlTransform;
+    using Xunit;
+
     public class WebConfigWithLocationTagTransformTest
     {
         private const string InstallConfigTransformationResourceName = "Microsoft.AspNet.TelemetryCorrelation.Tests.Resources.web.config.install.xdt";

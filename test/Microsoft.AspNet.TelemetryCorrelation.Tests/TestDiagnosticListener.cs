@@ -1,15 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
-    class TestDiagnosticListener : IObserver<KeyValuePair<string, object>>
+    using System;
+    using System.Collections.Generic;
+
+    internal class TestDiagnosticListener : IObserver<KeyValuePair<string, object>>
     {
-        Action<KeyValuePair<string, object>> _onNextCallBack;
+        private readonly Action<KeyValuePair<string, object>> onNextCallBack;
 
         public TestDiagnosticListener(Action<KeyValuePair<string, object>> onNext)
         {
-            _onNextCallBack = onNext;
+            this.onNextCallBack = onNext;
         }
 
         public void OnCompleted()
@@ -22,7 +25,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         public void OnNext(KeyValuePair<string, object> value)
         {
-            _onNextCallBack?.Invoke(value);
+            this.onNextCallBack?.Invoke(value);
         }
     }
 }
