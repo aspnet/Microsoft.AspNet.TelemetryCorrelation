@@ -1,39 +1,40 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
-using Xunit;
-
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
+    using System;
+    using System.Collections;
+    using System.Collections.Concurrent;
+    using System.Collections.Generic;
+    using System.Collections.Specialized;
+    using System.Diagnostics;
+    using System.Linq;
+    using System.Reflection;
+    using System.Threading;
+    using System.Threading.Tasks;
+    using System.Web;
+    using Xunit;
+
     public class ActivityHelperTest : IDisposable
     {
         private const string TestActivityName = "Activity.Test";
-        private readonly List<KeyValuePair<string, string>> _baggageItems;
-        private readonly string _baggageInHeader;
+        private readonly List<KeyValuePair<string, string>> baggageItems;
+        private readonly string baggageInHeader;
         private IDisposable subscriptionAllListeners;
         private IDisposable subscriptionAspNetListener;
 
         public ActivityHelperTest()
         {
-            _baggageItems = new List<KeyValuePair<string, string>>
+            this.baggageItems = new List<KeyValuePair<string, string>>
             {
                 new KeyValuePair<string, string>("TestKey1", "123"),
                 new KeyValuePair<string, string>("TestKey2", "456"),
                 new KeyValuePair<string, string>("TestKey1", "789")
             };
 
-            _baggageInHeader = "TestKey1=123,TestKey2=456,TestKey1=789";
+            this.baggageInHeader = "TestKey1=123,TestKey2=456,TestKey1=789";
+
             // reset static fields
             var allListenerField = typeof(DiagnosticListener).
                 GetField("s_allListenerObservable", BindingFlags.Static | BindingFlags.NonPublic);
@@ -45,15 +46,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         public void Dispose()
         {
-            subscriptionAspNetListener?.Dispose();
-            subscriptionAllListeners?.Dispose();
+            this.subscriptionAspNetListener?.Dispose();
+            this.subscriptionAllListeners?.Dispose();
         }
 
-        #region RestoreActivity tests
         [Fact]
         public async Task Can_Restore_Activity()
         {
-            var rootActivity = CreateActivity();
+            var rootActivity = this.CreateActivity();
 
             rootActivity.AddTag("k1", "v1");
             rootActivity.AddTag("k2", "v2");
@@ -67,9 +67,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
             ActivityHelper.RestoreActivityIfNeeded(context.Items);
 
-            AssertIsRestoredActivity(rootActivity, Activity.Current);
+            this.AssertIsRestoredActivity(rootActivity, Activity.Current);
         }
-
 
         [Fact]
         public void Do_Not_Restore_Activity_When_There_Is_No_Activity_In_Context()
@@ -131,7 +130,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Activity restored = Activity.Current;
 
             var events = new ConcurrentQueue<KeyValuePair<string, object>>();
-            EnableAll((kvp) => events.Enqueue(kvp));
+            this.EnableAll((kvp) => events.Enqueue(kvp));
 
             ActivityHelper.StopRestoredActivity(restored, context);
 
@@ -143,14 +142,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Assert.Same(restored, eventPayload.GetProperty("Activity"));
         }
 
-        #endregion
-
-        #region StopAspNetActivity tests
         [Fact]
         public void Can_Stop_Activity_Without_AspNetListener_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = CreateActivity();
+            var rootActivity = this.CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
             ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
@@ -164,10 +160,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Can_Stop_Activity_With_AspNetListener_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = CreateActivity();
+            var rootActivity = this.CreateActivity();
             rootActivity.Start();
             Thread.Sleep(100);
-            EnableAspNetListenerOnly();
+            this.EnableAspNetListenerOnly();
             ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
@@ -175,12 +171,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
 
-
         [Fact]
         public void Can_Stop_Root_Activity_With_All_Children()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = CreateActivity();
+            var rootActivity = this.CreateActivity();
             rootActivity.Start();
             new Activity("child").Start();
             new Activity("grandchild").Start();
@@ -196,7 +191,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Can_Stop_Child_Activity_With_All_Children()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = CreateActivity();
+            var rootActivity = this.CreateActivity();
             rootActivity.Start();
             var child = new Activity("child").Start();
             new Activity("grandchild").Start();
@@ -222,6 +217,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 {
                     // when we enter this method, Current is 'child' activity
                     Activity.Current.Stop();
+
                     // here Current is 'parent', but only in this execution context
                 });
             }
@@ -248,16 +244,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 new Activity("child" + i).Start();
             }
 
-            // we do not allow more than 128 nested activities here 
+            // we do not allow more than 128 nested activities here
             // only to protect from hypothetical cycles in Activity stack
             Assert.False(ActivityHelper.StopAspNetActivity(root, context.Items));
 
             Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);
         }
-        #endregion
 
-        #region CreateRootActivity tests
         [Fact]
         public void Should_Not_Create_RootActivity_If_AspNetListener_Not_Enabled()
         {
@@ -271,7 +265,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Should_Not_Create_RootActivity_If_AspNetActivity_Not_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            EnableAspNetListenerOnly();
+            this.EnableAspNetListenerOnly();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.Null(rootActivity);
@@ -281,7 +275,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Should_Not_Create_RootActivity_If_AspNetActivity_Not_Enabled_With_Arguments()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            EnableAspNetListenerAndDisableActivity();
+            this.EnableAspNetListenerAndDisableActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.Null(rootActivity);
@@ -292,17 +286,17 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var requestHeaders = new Dictionary<string, string>
             {
-                {ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1"},
-                {ActivityExtensions.CorrelationContextHeaderName, _baggageInHeader}
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1" },
+                { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
             var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
-            EnableAspNetListenerAndActivity();
+            this.EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.NotNull(rootActivity);
             Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1");
-            var expectedBaggage = _baggageItems.OrderBy(item => item.Value);
+            var expectedBaggage = this.baggageItems.OrderBy(item => item.Value);
             var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
             Assert.Equal(expectedBaggage, actualBaggage);
         }
@@ -311,7 +305,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Can_Create_RootActivity_And_Start_Activity()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            EnableAspNetListenerAndActivity();
+            this.EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.NotNull(rootActivity);
@@ -322,15 +316,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Can_Create_RootActivity_And_Saved_In_HttContext()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            EnableAspNetListenerAndActivity();
+            this.EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             Assert.NotNull(rootActivity);
             Assert.Same(rootActivity, context.Items[ActivityHelper.ActivityKey]);
         }
-        #endregion
-
-        #region Helper methods               
 
         private void AssertIsRestoredActivity(Activity original, Activity restored)
         {
@@ -351,91 +342,86 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         private Activity CreateActivity()
         {
             var activity = new Activity(TestActivityName);
-            _baggageItems.ForEach(kv => activity.AddBaggage(kv.Key, kv.Value));
+            this.baggageItems.ForEach(kv => activity.AddBaggage(kv.Key, kv.Value));
 
             return activity;
         }
 
         private void EnableAll(Action<KeyValuePair<string, object>> onNext = null)
         {
-            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
+            this.subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), (name) => true);
+                    this.subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), (name) => true);
                 }
             });
         }
 
-        private void EnableAspNetListenerAndDisableActivity(Action<KeyValuePair<string, object>> onNext = null,
-            string ActivityName = ActivityHelper.AspNetActivityName)
+        private void EnableAspNetListenerAndDisableActivity(
+            Action<KeyValuePair<string, object>> onNext = null,
+            string activityName = ActivityHelper.AspNetActivityName)
         {
-            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
+            this.subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext),
-                        (name, arg1, arg2) => name == ActivityName && arg1 == null);
+                    this.subscriptionAspNetListener = listener.Subscribe(
+                        new TestDiagnosticListener(onNext),
+                        (name, arg1, arg2) => name == activityName && arg1 == null);
                 }
             });
         }
 
-        private void EnableAspNetListenerAndActivity(Action<KeyValuePair<string, object>> onNext = null, 
-            string ActivityName = ActivityHelper.AspNetActivityName)
+        private void EnableAspNetListenerAndActivity(
+            Action<KeyValuePair<string, object>> onNext = null,
+            string activityName = ActivityHelper.AspNetActivityName)
         {
-            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
+            this.subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext),
-                        (name, arg1, arg2) => name == ActivityName);
+                    this.subscriptionAspNetListener = listener.Subscribe(
+                        new TestDiagnosticListener(onNext),
+                        (name, arg1, arg2) => name == activityName);
                 }
             });
         }
 
         private void EnableAspNetListenerOnly(Action<KeyValuePair<string, object>> onNext = null)
         {
-            subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
+            this.subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), 
+                    this.subscriptionAspNetListener = listener.Subscribe(
+                        new TestDiagnosticListener(onNext),
                         activityName => false);
                 }
             });
         }
 
-        #endregion
-
-        #region Helper Class        
         private class TestHttpRequest : HttpRequestBase
         {
-            NameValueCollection _headers = new NameValueCollection();
-            public override NameValueCollection Headers
-            {
-                get
-                {
-                    return _headers;
-                }
-            }
+            private readonly NameValueCollection headers = new NameValueCollection();
 
-            public override UnvalidatedRequestValuesBase Unvalidated => new TestUnvalidatedRequestValues(_headers);
+            public override NameValueCollection Headers => this.headers;
+
+            public override UnvalidatedRequestValuesBase Unvalidated => new TestUnvalidatedRequestValues(this.headers);
         }
 
         private class TestUnvalidatedRequestValues : UnvalidatedRequestValuesBase
         {
-            NameValueCollection _headers = new NameValueCollection();
-
             public TestUnvalidatedRequestValues(NameValueCollection headers)
             {
-                this._headers = headers;
+                this.Headers = headers;
             }
 
-            public override NameValueCollection Headers => _headers;
+            public override NameValueCollection Headers { get; }
         }
 
         private class TestHttpResponse : HttpResponseBase
@@ -444,76 +430,38 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         private class TestHttpServerUtility : HttpServerUtilityBase
         {
-            HttpContextBase _context;
+            private readonly HttpContextBase context;
 
             public TestHttpServerUtility(HttpContextBase context)
             {
-                _context = context;
+                this.context = context;
             }
 
             public override Exception GetLastError()
             {
-                return _context.Error;
+                return this.context.Error;
             }
         }
 
         private class TestHttpContext : HttpContextBase
         {
-            HttpRequestBase _request;
-            HttpResponseBase _response;
-            HttpServerUtilityBase _server;
-            Hashtable _items;
-            Exception _error;
+            private readonly Hashtable items;
 
             public TestHttpContext(Exception error = null)
             {
-                _request = new TestHttpRequest();
-                _response = new TestHttpResponse();
-                _server = new TestHttpServerUtility(this);
-                _items = new Hashtable();
-                _error = error;
+                this.Server = new TestHttpServerUtility(this);
+                this.items = new Hashtable();
+                this.Error = error;
             }
 
-            public override HttpRequestBase Request
-            {
-                get
-                {
-                    return _request;
-                }
-            }
+            public override HttpRequestBase Request { get; } = new TestHttpRequest();
 
-            public override IDictionary Items
-            {
-                get
-                {
-                    return _items;
-                }
-            }
+            /// <inheritdoc />
+            public override IDictionary Items => this.items;
 
-            public override Exception Error
-            {
-                get
-                {
-                    return _error;
-                }
-            }
+            public override Exception Error { get; }
 
-            public override HttpServerUtilityBase Server
-            {
-                get
-                {
-                    return _server;
-                }
-            }
-        }
-        #endregion
-    }
-
-    static class PropertyExtensions
-    {
-        public static object GetProperty(this object _this, string propertyName)
-        {
-            return _this.GetType().GetTypeInfo().GetDeclaredProperty(propertyName)?.GetValue(_this);
+            public override HttpServerUtilityBase Server { get; }
         }
     }
 }

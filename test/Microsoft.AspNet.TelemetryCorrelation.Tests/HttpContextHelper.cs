@@ -1,16 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Threading;
-using System.Web;
-using System.Web.Hosting;
-
 namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
-    class HttpContextHelper
+    using System.Collections.Generic;
+    using System.Globalization;
+    using System.IO;
+    using System.Threading;
+    using System.Web;
+    using System.Web.Hosting;
+
+    internal class HttpContextHelper
     {
         public static HttpContext GetFakeHttpContext(string page = "/page", string query = "", IDictionary<string, string> headers = null)
         {
