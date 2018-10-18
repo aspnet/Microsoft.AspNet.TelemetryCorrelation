@@ -53,10 +53,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(6, id, name);
         }
 
-        [Event(7, Message = "Activity stack is too deep, Current Id: '{0}', Name: '{1}'", Level = EventLevel.Error)]
-        public void ActivityStackIsTooDeep(string id, string name)
+        [Event(7, Message = "Activity stack is too deep.", Level = EventLevel.Error)]
+        public void ActivityStackIsTooDeepError()
         {
-            WriteEvent(7, id, name);
+            WriteEvent(7);
         }
 
         [Event(8, Message = "Activity restored, Id='{0}'", Level = EventLevel.Informational)]
@@ -69,6 +69,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public void OnExecuteRequestStepInvokationError(string error)
         {
             WriteEvent(9, error);
+        }
+
+        [Event(10, Message = "Activity stack is too deep, Current Id: '{0}', Name: '{1}'", Level = EventLevel.Warning)]
+        public void ActivityStackIsTooDeepDetails(string id, string name)
+        {
+            WriteEvent(10, id, name);
         }
     }
 }
