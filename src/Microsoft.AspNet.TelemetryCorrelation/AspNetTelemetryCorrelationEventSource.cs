@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(6, id, name);
         }
 
-        [Event(7, Message = "Activity stack is too deep.", Level = EventLevel.Error)]
+        [Event(7, Message = "System.Diagnostics.Activity stack is too deep. This is a code authoring error, Activity will not be stopped.", Level = EventLevel.Error)]
         public void ActivityStackIsTooDeepError()
         {
             WriteEvent(7);
@@ -71,7 +71,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             WriteEvent(9, error);
         }
 
-        [Event(10, Message = "Activity stack is too deep, Current Id: '{0}', Name: '{1}'", Level = EventLevel.Warning)]
+        [Event(10, Message = "System.Diagnostics.Activity stack is too deep. Current Id: '{0}', Name: '{1}'", Level = EventLevel.Warning)]
         public void ActivityStackIsTooDeepDetails(string id, string name)
         {
             WriteEvent(10, id, name);
