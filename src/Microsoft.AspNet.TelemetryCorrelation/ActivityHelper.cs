@@ -90,7 +90,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     // in case it would ever be possible to have cycles in the Activity stack.
                     if (iteration++ == MaxActivityStackSize)
                     {
-                        AspNetTelemetryCorrelationEventSource.Log.ActivityStackIsTooDeep(currentActivity.Id, currentActivity.OperationName);
+                        // this is for internal error reporting
+                        AspNetTelemetryCorrelationEventSource.Log.ActivityStackIsTooDeepError();
+
+                        // this is for debugging
+                        AspNetTelemetryCorrelationEventSource.Log.ActivityStackIsTooDeepDetails(currentActivity.Id, currentActivity.OperationName);
                         activity.Stop();
                         return false;
                     }
