@@ -12,7 +12,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
     using System.Linq;
     using Xunit;
 
-    public class NameValueHeaderValueTest
+    public class ActivityExtensionsTest
     {
         private const string TestActivityName = "Activity.Test";
 
