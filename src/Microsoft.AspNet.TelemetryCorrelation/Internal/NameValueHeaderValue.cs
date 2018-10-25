@@ -5,7 +5,9 @@ using System.Diagnostics.Contracts;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
 {
-    // According to the RFC, in places where a "parameter" is required, the value is mandatory
+    // Adoptation of code from https://github.com/aspnet/HttpAbstractions/blob/07d115400e4f8c7a66ba239f230805f03a14ee3d/src/Microsoft.Net.Http.Headers/NameValueHeaderValue.cs
+
+        // According to the RFC, in places where a "parameter" is required, the value is mandatory
     // (e.g. Media-Type, Accept). However, we don't introduce a dedicated type for it. So NameValueHeaderValue supports
     // name-only values in addition to name/value pairs.
     internal class NameValueHeaderValue

@@ -43,19 +43,19 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.Xdt" Version="2.1.1" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0"/>
-    <PackageReference Include="System.Reactive.Core" Version="3.1.1"/>
-    <PackageReference Include="System.Reactive.Interfaces" Version="3.1.1"/>
-    <PackageReference Include="xunit" Version="2.3.1"/>
-    <PackageReference Include="xunit.abstractions" Version="2.0.1"/>
-    <PackageReference Include="xunit.analyzers" Version="0.7.0"/>
-    <PackageReference Include="xunit.assert" Version="2.3.1"/>
-    <PackageReference Include="xunit.core" Version="2.3.1"/>
-    <PackageReference Include="xunit.extensibility.core" Version="2.3.1"/>
-    <PackageReference Include="xunit.extensibility.execution" Version="2.3.1"/>
-    <PackageReference Include="xunit.runner.msbuild" Version="2.2.0"/>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.0" />
+    <PackageReference Include="System.Reactive.Core" Version="3.1.1" />
+    <PackageReference Include="System.Reactive.Interfaces" Version="3.1.1" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.abstractions" Version="2.0.1" />
+    <PackageReference Include="xunit.analyzers" Version="0.7.0" />
+    <PackageReference Include="xunit.assert" Version="2.3.1" />
+    <PackageReference Include="xunit.core" Version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.core" Version="2.3.1" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.msbuild" Version="2.2.0" />
 
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1"/>
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
 
     <PackageReference Include="MicroBuild.Core" Version="0.3.0">
       <PrivateAssets>All</PrivateAssets>

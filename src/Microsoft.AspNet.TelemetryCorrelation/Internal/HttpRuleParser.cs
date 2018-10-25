@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Diagnostics.Contracts;
-using System.Text;
 
 namespace Microsoft.AspNet.TelemetryCorrelation
 {
+    // Adoptation of code from https://github.com/aspnet/HttpAbstractions/blob/07d115400e4f8c7a66ba239f230805f03a14ee3d/src/Microsoft.Net.Http.Headers/HttpRuleParser.cs
     internal static class HttpRuleParser
     {
         internal const char CR = '\r';
