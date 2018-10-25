@@ -12,7 +12,11 @@
     <IntermediateOutputPath>$(ObjPath)$(Configuration)\$(MSBuildProjectName)\</IntermediateOutputPath>
   </PropertyGroup>
 
-<!--VERSION -->
+  <ItemGroup>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)/stylecop.json" />
+  </ItemGroup>
+
+  <!--VERSION -->
     <PropertyGroup>
       <BuildQuality Condition="'$(BuildQuality)' == ''">rtm</BuildQuality>
       <VersionStartYear>2018</VersionStartYear>
