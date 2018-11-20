@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
@@ -22,9 +23,16 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         /// <summary>
+        /// Gets or sets a value indicating whether TelemetryCorrelationHttpModule should parse headers by default to get correlation ids.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static bool ParseHeadersDefault { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a value indicating whether TelemetryCorrelationHttpModule should parse headers to get correlation ids.
         /// </summary>
-        public bool ParseHeaders { get; set; } = true;
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool? ParseHeaders { get; set; } = null;
 
         /// <inheritdoc />
         public void Dispose()
@@ -83,7 +91,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             var context = ((HttpApplication)sender).Context;
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_BeginRequest");
-            ActivityHelper.CreateRootActivity(context, ParseHeaders);
+            ActivityHelper.CreateRootActivity(context, ParseHeaders ?? ParseHeadersDefault);
             context.Items[BeginCalledFlag] = true;
         }
 
@@ -104,7 +112,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (!context.Items.Contains(BeginCalledFlag))
             {
                 // Activity has never been started
-                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders);
+                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders ?? ParseHeadersDefault);
                 ActivityHelper.StopAspNetActivity(activity, context.Items);
             }
             else

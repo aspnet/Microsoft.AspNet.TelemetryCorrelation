@@ -289,7 +289,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var requestHeaders = new Dictionary<string, string>
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1" },
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
                 { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
@@ -298,7 +298,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
-            Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1");
+            Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1.");
             var expectedBaggage = this.baggageItems.OrderBy(item => item.Value);
             var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
             Assert.Equal(expectedBaggage, actualBaggage);
@@ -309,7 +309,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var requestHeaders = new Dictionary<string, string>
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1" },
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
                 { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
