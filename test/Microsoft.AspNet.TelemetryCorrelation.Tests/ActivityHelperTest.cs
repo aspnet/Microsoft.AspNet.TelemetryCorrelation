@@ -305,6 +305,24 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
+        public void Can_Create_RootActivity_And_Ignore_Info_From_Request_Header_If_ParseHeaders_Is_False()
+        {
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1" },
+                { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
+            };
+
+            var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
+            this.EnableAspNetListenerAndActivity();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, parseHeaders: false);
+
+            Assert.NotNull(rootActivity);
+            Assert.Null(rootActivity.ParentId);
+            Assert.Empty(rootActivity.Baggage);
+        }
+
+        [Fact]
         public void Can_Create_RootActivity_And_Start_Activity()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
