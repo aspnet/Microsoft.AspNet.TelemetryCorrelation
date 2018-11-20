@@ -259,7 +259,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Should_Not_Create_RootActivity_If_AspNetListener_Not_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -269,7 +269,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerOnly();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -279,7 +279,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndDisableActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -295,7 +295,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
             var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1");
@@ -309,7 +309,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.True(!string.IsNullOrEmpty(rootActivity.Id));
@@ -320,7 +320,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.Same(rootActivity, context.Items[ActivityHelper.ActivityKey]);
