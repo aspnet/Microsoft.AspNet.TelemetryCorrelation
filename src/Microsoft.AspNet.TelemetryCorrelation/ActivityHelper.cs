@@ -141,14 +141,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// Creates root (first level) activity that describes incoming request.
         /// </summary>
         /// <param name="context">Current HttpContext.</param>
+        /// <param name="parseHeaders">Determines if headers should be parsed get correlation ids.</param>
         /// <returns>New root activity.</returns>
-        public static Activity CreateRootActivity(HttpContext context)
+        public static Activity CreateRootActivity(HttpContext context, bool parseHeaders)
         {
             if (AspNetListener.IsEnabled() && AspNetListener.IsEnabled(AspNetActivityName))
             {
                 var rootActivity = new Activity(AspNetActivityName);
 
-                rootActivity.Extract(context.Request.Unvalidated.Headers);
+                if (parseHeaders)
+                {
+                    rootActivity.Extract(context.Request.Unvalidated.Headers);
+                }
+
                 if (StartAspNetActivity(rootActivity))
                 {
                     context.Items[ActivityKey] = rootActivity;

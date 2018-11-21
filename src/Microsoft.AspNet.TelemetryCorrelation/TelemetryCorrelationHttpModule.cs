@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Web;
@@ -20,6 +21,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             onStepMethodInfo = typeof(HttpApplication).GetMethod("OnExecuteRequestStep");
         }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether TelemetryCorrelationHttpModule should parse headers to get correlation ids.
+        /// </summary>
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public bool ParseHeaders { get; set; } = true;
 
         /// <inheritdoc />
         public void Dispose()
@@ -78,7 +85,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             var context = ((HttpApplication)sender).Context;
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_BeginRequest");
-            ActivityHelper.CreateRootActivity(context);
+            ActivityHelper.CreateRootActivity(context, ParseHeaders);
             context.Items[BeginCalledFlag] = true;
         }
 
@@ -99,7 +106,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (!context.Items.Contains(BeginCalledFlag))
             {
                 // Activity has never been started
-                var activity = ActivityHelper.CreateRootActivity(context);
+                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders);
                 ActivityHelper.StopAspNetActivity(activity, context.Items);
             }
             else

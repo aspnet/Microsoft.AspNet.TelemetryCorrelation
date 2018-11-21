@@ -259,7 +259,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         public void Should_Not_Create_RootActivity_If_AspNetListener_Not_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -269,7 +269,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerOnly();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -279,7 +279,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndDisableActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.Null(rootActivity);
         }
@@ -289,19 +289,37 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var requestHeaders = new Dictionary<string, string>
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1" },
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
                 { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
             var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
-            Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1");
+            Assert.True(rootActivity.ParentId == "|aba2f1e978b2cab6.1.");
             var expectedBaggage = this.baggageItems.OrderBy(item => item.Value);
             var actualBaggage = rootActivity.Baggage.OrderBy(item => item.Value);
             Assert.Equal(expectedBaggage, actualBaggage);
+        }
+
+        [Fact]
+        public void Can_Create_RootActivity_And_Ignore_Info_From_Request_Header_If_ParseHeaders_Is_False()
+        {
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
+                { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
+            };
+
+            var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
+            this.EnableAspNetListenerAndActivity();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, parseHeaders: false);
+
+            Assert.NotNull(rootActivity);
+            Assert.Null(rootActivity.ParentId);
+            Assert.Empty(rootActivity.Baggage);
         }
 
         [Fact]
@@ -309,7 +327,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.True(!string.IsNullOrEmpty(rootActivity.Id));
@@ -320,7 +338,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
-            var rootActivity = ActivityHelper.CreateRootActivity(context);
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.Same(rootActivity, context.Items[ActivityHelper.ActivityKey]);
