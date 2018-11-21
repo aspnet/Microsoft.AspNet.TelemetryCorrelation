@@ -23,16 +23,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether TelemetryCorrelationHttpModule should parse headers by default to get correlation ids.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public static bool ParseHeadersDefault { get; set; } = true;
-
-        /// <summary>
         /// Gets or sets a value indicating whether TelemetryCorrelationHttpModule should parse headers to get correlation ids.
         /// </summary>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public bool? ParseHeaders { get; set; } = null;
+        public bool ParseHeaders { get; set; } = true;
 
         /// <inheritdoc />
         public void Dispose()
@@ -91,7 +85,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             var context = ((HttpApplication)sender).Context;
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_BeginRequest");
-            ActivityHelper.CreateRootActivity(context, ParseHeaders ?? ParseHeadersDefault);
+            ActivityHelper.CreateRootActivity(context, ParseHeaders);
             context.Items[BeginCalledFlag] = true;
         }
 
@@ -112,7 +106,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (!context.Items.Contains(BeginCalledFlag))
             {
                 // Activity has never been started
-                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders ?? ParseHeadersDefault);
+                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders);
                 ActivityHelper.StopAspNetActivity(activity, context.Items);
             }
             else
