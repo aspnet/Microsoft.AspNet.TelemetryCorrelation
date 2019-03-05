@@ -201,26 +201,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         private static Activity RestoreActivity(Activity root)
         {
             Debug.Assert(root != null);
+            Debug.Assert(Activity.Current == null);
 
-            // workaround to restore the root activity, because we don't
-            // have a way to change the Activity.Current
-            var childActivity = new Activity(root.OperationName);
-            childActivity.SetParentId(root.Id);
-            childActivity.SetStartTime(root.StartTimeUtc);
-            foreach (var item in root.Baggage)
-            {
-                childActivity.AddBaggage(item.Key, item.Value);
-            }
-
-            foreach (var item in root.Tags)
-            {
-                childActivity.AddTag(item.Key, item.Value);
-            }
-
-            childActivity.Start();
-
-            AspNetTelemetryCorrelationEventSource.Log.ActivityRestored(childActivity.Id);
-            return childActivity;
+            Activity.Current = root;
+            AspNetTelemetryCorrelationEventSource.Log.ActivityRestored(root.Id);
+            return root;
         }
 
         private static bool StartAspNetActivity(Activity activity)

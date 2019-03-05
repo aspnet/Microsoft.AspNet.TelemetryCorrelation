@@ -346,18 +346,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
         private void AssertIsRestoredActivity(Activity original, Activity restored)
         {
-            Assert.NotNull(restored);
-            Assert.Equal(original.RootId, restored.RootId);
-            Assert.Equal(original.Id, restored.ParentId);
-            Assert.Equal(original.StartTimeUtc, restored.StartTimeUtc);
-            Assert.False(string.IsNullOrEmpty(restored.Id));
-            var expectedBaggage = original.Baggage.OrderBy(item => item.Value);
-            var actualBaggage = restored.Baggage.OrderBy(item => item.Value);
-            Assert.Equal(expectedBaggage, actualBaggage);
-
-            var expectedTags = original.Tags.OrderBy(item => item.Value);
-            var actualTags = restored.Tags.OrderBy(item => item.Value);
-            Assert.Equal(expectedTags, actualTags);
+            Assert.Equal(original, restored);
         }
 
         private Activity CreateActivity()

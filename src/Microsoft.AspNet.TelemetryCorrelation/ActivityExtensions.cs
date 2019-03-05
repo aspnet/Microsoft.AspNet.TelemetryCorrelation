@@ -55,11 +55,26 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 return false;
             }
 
-            var requestIDs = requestHeaders.GetValues(RequestIDHeaderName);
-            if (!string.IsNullOrEmpty(requestIDs?[0]))
+            string[] requestIds = null;
+            if (Activity.DefaultIdFormat == ActivityIdFormat.Hierarchical)
+            {
+                requestIds = requestHeaders.GetValues(RequestIDHeaderName);
+            }
+            else
+            {
+                requestIds = requestHeaders.GetValues("traceparent");
+            }
+
+            if (!string.IsNullOrEmpty(requestIds?[0]))
             {
                 // there may be several Request-Id header, but we only read the first one
-                activity.SetParentId(requestIDs[0]);
+                activity.SetParentId(requestIds[0]);
+
+                var tracestate = requestHeaders.GetValues("tracestate");
+                if (tracestate != null)
+                {
+                    activity.TraceStateString = tracestate[0];
+                }
 
                 // Header format - Correlation-Context: key1=value1, key2=value2
                 var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
@@ -90,7 +105,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                             }
                             else
                             {
-                                AspNetTelemetryCorrelationEventSource.Log.HeaderParsingError(CorrelationContextHeaderName, pair);
+                                AspNetTelemetryCorrelationEventSource.Log.HeaderParsingError(
+                                    CorrelationContextHeaderName, pair);
                             }
                         }
                     }
@@ -98,6 +114,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
                 return true;
             }
+
 
             return false;
         }

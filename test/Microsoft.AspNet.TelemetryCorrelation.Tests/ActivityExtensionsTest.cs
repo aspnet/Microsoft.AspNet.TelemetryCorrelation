@@ -29,6 +29,29 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
+        public void w3c()
+        {
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { "traceparent", "00-0123456789abcdef0123456789abcdef-0ebf7e2889cb234a-00" },
+                { "tracestate", "a=b" }
+            };
+
+            Assert.True(activity.Extract(requestHeaders));
+
+            activity.Start();
+            Assert.Equal("00-0123456789abcdef0123456789abcdef-0ebf7e2889cb234a-00", activity.ParentId);
+            Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.AsHexString);
+            Assert.Equal("0ebf7e2889cb234a", activity.ParentSpanId.AsHexString);
+            Assert.Equal("a=b", activity.TraceStateString);
+            Assert.Empty(activity.Baggage);
+
+            Activity.DefaultIdFormat = ActivityIdFormat.Hierarchical;
+        }
+
+        [Fact]
         public void Can_Restore_First_RequestId_When_Multiple_RequestId_In_Headers()
         {
             var activity = new Activity(TestActivityName);
