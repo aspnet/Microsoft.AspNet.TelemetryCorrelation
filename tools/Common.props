@@ -22,16 +22,18 @@
       <VersionStartYear>2018</VersionStartYear>
       <VersionMajor>1</VersionMajor>
       <VersionMinor>0</VersionMinor>
-      <VersionRelease>5</VersionRelease>
-
+      <VersionRelease>6</VersionRelease>
+      <PreReleaseMilestone>beta1</PreReleaseMilestone>
+    
       <VersionBuild Condition="'$(VersionBuild)' == '' OR '$(VersionBuild)' == '0'">$([MSBuild]::Add(1, $([MSBuild]::Subtract($([System.DateTime]::Now.Year), $(VersionStartYear)))))$([System.DateTime]::Now.ToString("MMdd"))</VersionBuild>
       <VersionRevision Condition="'$(VersionRevision)' == ''">0</VersionRevision>
       <VersionRelease Condition="'$(VersionRelease)' == ''">0</VersionRelease>
     </PropertyGroup>
 
     <PropertyGroup>
-      <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionRelease)</VersionPrefix>
-      <VersionSuffix Condition="'$(BuildQuality)' != 'rtm'">$(BuildQuality)</VersionSuffix>
+      <PackageVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease)</PackageVersion>
+      <PackageVersion Condition="'$(PreReleaseMilestone)' != ''">$(PackageVersion)-$(PreReleaseMilestone)</PackageVersion>
+      <PackageVersion Condition="'$(StableRelease)' != 'True'">$(PackageVersion)-build$(VersionBuild)</PackageVersion>
       <FileVersion>$(VersionMajor).$(VersionMinor).$(VersionBuild).$(VersionRevision)</FileVersion>
       <InformationalVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease)-$(VersionBuild)</InformationalVersion>
       <AssemblyVersion>$(VersionMajor).$(VersionMinor).$(VersionRelease).0</AssemblyVersion>
