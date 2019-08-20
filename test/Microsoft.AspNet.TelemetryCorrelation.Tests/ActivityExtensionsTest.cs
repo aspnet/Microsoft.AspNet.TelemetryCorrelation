@@ -25,6 +25,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             Assert.False(activity.Extract(requestHeaders));
 
             Assert.True(string.IsNullOrEmpty(activity.ParentId));
+            Assert.Null(activity.TraceStateString);
             Assert.Empty(activity.Baggage);
         }
 
@@ -34,8 +35,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1" },
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b22222.1" }
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b22222.1" }
             };
             Assert.True(activity.Extract(requestHeaders));
 
@@ -44,16 +45,119 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
+        public void Can_Extract_Traceparent_And_RequestId()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" }
+            };
+            Assert.True(activity.Extract(requestHeaders));
+
+            activity.Start();
+            Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
+            Assert.Equal("00-0123456789abcdef0123456789abcdef-0123456789abcdef-00", activity.ParentId);
+            Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", activity.ParentSpanId.ToHexString());
+            Assert.False(activity.Recorded);
+
+            Assert.Null(activity.TraceStateString);
+            Assert.Empty(activity.Baggage);
+        }
+
+        [Fact]
+        public void Can_Extract_RootActivity_From_W3C_Headers_And_CC()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01" },
+                { ActivityExtensions.TracestateHeaderName, "ts1=v1,ts2=v2" },
+                { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" },
+            };
+
+            Assert.True(activity.Extract(requestHeaders));
+            activity.Start();
+            Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
+            Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", activity.ParentSpanId.ToHexString());
+            Assert.True(activity.Recorded);
+
+            Assert.Equal("ts1=v1,ts2=v2", activity.TraceStateString);
+            var baggageItems = new List<KeyValuePair<string, string>>
+            {
+                new KeyValuePair<string, string>("key1", "123"),
+                new KeyValuePair<string, string>("key2", "456"),
+                new KeyValuePair<string, string>("key3", "789")
+            };
+            var expectedBaggage = baggageItems.OrderBy(kvp => kvp.Key);
+            var actualBaggage = activity.Baggage.OrderBy(kvp => kvp.Key);
+            Assert.Equal(expectedBaggage, actualBaggage);
+        }
+
+        [Fact]
+        public void Can_Extract_Empty_Traceparent()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.TraceparentHeaderName, "" },
+            };
+
+            Assert.False(activity.Extract(requestHeaders));
+
+            Assert.Equal(default, activity.ParentSpanId);
+            Assert.Null(activity.ParentId);
+        }
+
+        [Fact]
+        public void Can_Extract_Multi_Line_Tracestate()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01" },
+                { ActivityExtensions.TracestateHeaderName, "ts1=v1" },
+                { ActivityExtensions.TracestateHeaderName, "ts2=v2" },
+            };
+
+            Assert.True(activity.Extract(requestHeaders));
+            activity.Start();
+            Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
+            Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", activity.ParentSpanId.ToHexString());
+            Assert.True(activity.Recorded);
+
+            Assert.Equal("ts1=v1,ts2=v2", activity.TraceStateString);
+        }
+
+        [Fact]
         public void Restore_Empty_RequestId_Should_Not_Throw_Exception()
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, string.Empty }
+                { ActivityExtensions.RequestIdHeaderName, string.Empty }
             };
             Assert.False(activity.Extract(requestHeaders));
 
             Assert.Null(activity.ParentId);
+            Assert.Empty(activity.Baggage);
+        }
+
+        [Fact]
+        public void Restore_Empty_Traceparent_Should_Not_Throw_Exception()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.TraceparentHeaderName, string.Empty }
+            };
+            Assert.False(activity.Extract(requestHeaders));
+
+            Assert.Null(activity.ParentId);
+            Assert.Null(activity.TraceStateString);
             Assert.Empty(activity.Baggage);
         }
 
@@ -63,7 +167,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1" },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" }
             };
             Assert.True(activity.Extract(requestHeaders));
@@ -86,7 +190,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1" },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key4=abc,key5=def" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key6=xyz" }
@@ -114,7 +218,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b11111.1" },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key4=abc;key5=def" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key6????xyz" },
@@ -167,7 +271,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.RequestIDHeaderName, "|abc.1" },
+                { ActivityExtensions.RequestIdHeaderName, "|abc.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, correlationContext }
             };
             Assert.True(activity.Extract(requestHeaders));
