@@ -106,32 +106,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (!context.Items.Contains(BeginCalledFlag))
             {
                 // Activity has never been started
-                var activity = ActivityHelper.CreateRootActivity(context, ParseHeaders);
-                ActivityHelper.StopAspNetActivity(activity, context.Items);
+                ActivityHelper.CreateRootActivity(context, ParseHeaders);
             }
-            else
-            {
-                var activity = (Activity)context.Items[ActivityHelper.ActivityKey];
 
-                // try to stop activity if it's in the Current stack
-                // stop all running Activities on the way
-                if (!ActivityHelper.StopAspNetActivity(activity, context.Items))
-                {
-                    // perhaps we attempted to restore the Activity before
-                    var restoredActivity = (Activity)context.Items[ActivityHelper.RestoredActivityKey];
-                    if (restoredActivity != null)
-                    {
-                        // if so, report it
-                        ActivityHelper.StopRestoredActivity(restoredActivity, context);
-                    }
-
-                    // Activity we created was lost let's report it
-                    if (activity != null)
-                    {
-                        ActivityHelper.StopLostActivity(activity, context);
-                    }
-                }
-            }
+            ActivityHelper.StopAspNetActivity(context.Items);
         }
     }
 }

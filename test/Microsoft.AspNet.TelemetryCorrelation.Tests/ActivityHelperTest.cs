@@ -8,7 +8,6 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 {
     using System;
     using System.Collections;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Diagnostics;
@@ -56,6 +55,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public async Task Can_Restore_Activity()
         {
+            this.EnableAll();
             var rootActivity = this.CreateActivity();
 
             rootActivity.AddTag("k1", "v1");
@@ -70,12 +70,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
 
             ActivityHelper.RestoreActivityIfNeeded(context.Items);
 
-            this.AssertIsRestoredActivity(rootActivity, Activity.Current);
+            Assert.Same(Activity.Current, rootActivity);
         }
 
         [Fact]
         public void Do_Not_Restore_Activity_When_There_Is_No_Activity_In_Context()
         {
+            this.EnableAll();
             ActivityHelper.RestoreActivityIfNeeded(HttpContextHelper.GetFakeHttpContext().Items);
 
             Assert.Null(Activity.Current);
@@ -84,6 +85,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Do_Not_Restore_Activity_When_It_Is_Not_Lost()
         {
+            this.EnableAll();
             var root = new Activity("root").Start();
 
             var context = HttpContextHelper.GetFakeHttpContext();
@@ -97,62 +99,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
-        public async Task Stop_Restored_Activity_Deletes_It_From_Items()
-        {
-            var context = HttpContextHelper.GetFakeHttpContext();
-            var root = new Activity("root");
-
-            await Task.Run(() =>
-            {
-                root.Start();
-                context.Items[ActivityHelper.ActivityKey] = root;
-            });
-
-            ActivityHelper.RestoreActivityIfNeeded(context.Items);
-
-            var child = Activity.Current;
-
-            ActivityHelper.StopRestoredActivity(child, context);
-            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
-            Assert.Null(context.Items[ActivityHelper.RestoredActivityKey]);
-        }
-
-        [Fact]
-        public async Task Stop_Restored_Activity_Fires_Event()
-        {
-            var context = HttpContextHelper.GetFakeHttpContext();
-            var root = new Activity("root");
-
-            await Task.Run(() =>
-            {
-                root.Start();
-                context.Items[ActivityHelper.ActivityKey] = root;
-            });
-
-            ActivityHelper.RestoreActivityIfNeeded(context.Items);
-            Activity restored = Activity.Current;
-
-            var events = new ConcurrentQueue<KeyValuePair<string, object>>();
-            this.EnableAll((kvp) => events.Enqueue(kvp));
-
-            ActivityHelper.StopRestoredActivity(restored, context);
-
-            Assert.Single(events);
-            string eventName = events.Single().Key;
-            object eventPayload = events.Single().Value;
-
-            Assert.Equal(ActivityHelper.AspNetActivityRestoredStopName, eventName);
-            Assert.Same(restored, eventPayload.GetProperty("Activity"));
-        }
-
-        [Fact]
         public void Can_Stop_Activity_Without_AspNetListener_Enabled()
         {
             var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = this.CreateActivity();
             rootActivity.Start();
+            context.Items[ActivityHelper.ActivityKey] = rootActivity;
             Thread.Sleep(100);
-            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
+            ActivityHelper.StopAspNetActivity(context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -165,9 +119,10 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var context = HttpContextHelper.GetFakeHttpContext();
             var rootActivity = this.CreateActivity();
             rootActivity.Start();
+            context.Items[ActivityHelper.ActivityKey] = rootActivity;
             Thread.Sleep(100);
             this.EnableAspNetListenerOnly();
-            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
+            ActivityHelper.StopAspNetActivity(context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
@@ -177,41 +132,42 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Stop_Root_Activity_With_All_Children()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = this.CreateActivity();
-            rootActivity.Start();
-            new Activity("child").Start();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
+
+            var child = new Activity("child").Start();
             new Activity("grandchild").Start();
 
-            ActivityHelper.StopAspNetActivity(rootActivity, context.Items);
+            ActivityHelper.StopAspNetActivity(context.Items);
 
             Assert.True(rootActivity.Duration != TimeSpan.Zero);
+            Assert.True(child.Duration == TimeSpan.Zero);
             Assert.Null(rootActivity.Parent);
             Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
 
         [Fact]
-        public void Can_Stop_Child_Activity_With_All_Children()
+        public void Can_Stop_Root_While_Child_Is_Current()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
-            var rootActivity = this.CreateActivity();
-            rootActivity.Start();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
             var child = new Activity("child").Start();
-            new Activity("grandchild").Start();
 
-            ActivityHelper.StopAspNetActivity(child, context.Items);
+            ActivityHelper.StopAspNetActivity(context.Items);
 
-            Assert.True(child.Duration != TimeSpan.Zero);
-            Assert.Equal(rootActivity, Activity.Current);
+            Assert.True(child.Duration == TimeSpan.Zero);
+            Assert.Null(Activity.Current);
             Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
 
         [Fact]
         public async Task Can_Stop_Root_Activity_If_It_Is_Broken()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
-            var root = new Activity("root").Start();
-            context.Items[ActivityHelper.ActivityKey] = root;
+            var root = ActivityHelper.CreateRootActivity(context, false);
             new Activity("child").Start();
 
             for (int i = 0; i < 2; i++)
@@ -230,28 +186,29 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             // do not affect 'parent' context in which Task.Run is called.
             // But 'child' Activity is stopped, thus consequent calls to Stop will
             // not update Current
-            Assert.False(ActivityHelper.StopAspNetActivity(root, context.Items));
-            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            ActivityHelper.StopAspNetActivity(context.Items);
+            Assert.True(root.Duration != TimeSpan.Zero);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);
         }
 
         [Fact]
         public void Stop_Root_Activity_With_129_Nesting_Depth()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
-            var root = new Activity("root").Start();
-            context.Items[ActivityHelper.ActivityKey] = root;
+            var root = ActivityHelper.CreateRootActivity(context, false);
 
             for (int i = 0; i < 129; i++)
             {
                 new Activity("child" + i).Start();
             }
 
-            // we do not allow more than 128 nested activities here
-            // only to protect from hypothetical cycles in Activity stack
-            Assert.False(ActivityHelper.StopAspNetActivity(root, context.Items));
+            // can stop any activity regardless of the stack depth
+            ActivityHelper.StopAspNetActivity(context.Items);
 
-            Assert.NotNull(context.Items[ActivityHelper.ActivityKey]);
+            Assert.True(root.Duration != TimeSpan.Zero);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
             Assert.Null(Activity.Current);
         }
 
@@ -287,6 +244,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Restore_Info_From_Request_Header()
         {
+            this.EnableAll();
             var requestHeaders = new Dictionary<string, string>
             {
                 { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
@@ -307,6 +265,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Ignore_Info_From_Request_Header_If_ParseHeaders_Is_False()
         {
+            this.EnableAll();
             var requestHeaders = new Dictionary<string, string>
             {
                 { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
@@ -325,6 +284,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Start_Activity()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context, true);
@@ -336,28 +296,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         [Fact]
         public void Can_Create_RootActivity_And_Saved_In_HttContext()
         {
+            this.EnableAll();
             var context = HttpContextHelper.GetFakeHttpContext();
             this.EnableAspNetListenerAndActivity();
             var rootActivity = ActivityHelper.CreateRootActivity(context, true);
 
             Assert.NotNull(rootActivity);
             Assert.Same(rootActivity, context.Items[ActivityHelper.ActivityKey]);
-        }
-
-        private void AssertIsRestoredActivity(Activity original, Activity restored)
-        {
-            Assert.NotNull(restored);
-            Assert.Equal(original.RootId, restored.RootId);
-            Assert.Equal(original.Id, restored.ParentId);
-            Assert.Equal(original.StartTimeUtc, restored.StartTimeUtc);
-            Assert.False(string.IsNullOrEmpty(restored.Id));
-            var expectedBaggage = original.Baggage.OrderBy(item => item.Value);
-            var actualBaggage = restored.Baggage.OrderBy(item => item.Value);
-            Assert.Equal(expectedBaggage, actualBaggage);
-
-            var expectedTags = original.Tags.OrderBy(item => item.Value);
-            var actualTags = restored.Tags.OrderBy(item => item.Value);
-            Assert.Equal(expectedTags, actualTags);
         }
 
         private Activity CreateActivity()
