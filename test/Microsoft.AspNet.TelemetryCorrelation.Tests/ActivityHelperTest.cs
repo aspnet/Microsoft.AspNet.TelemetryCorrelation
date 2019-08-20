@@ -53,24 +53,62 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
-        public async Task Can_Restore_Activity()
+        public void Can_Restore_Activity()
         {
             this.EnableAll();
-            var rootActivity = this.CreateActivity();
-
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
             rootActivity.AddTag("k1", "v1");
             rootActivity.AddTag("k2", "v2");
-            var context = HttpContextHelper.GetFakeHttpContext();
-            await Task.Run(() =>
-            {
-                rootActivity.Start();
-                context.Items[ActivityHelper.ActivityKey] = rootActivity;
-            });
-            Assert.Null(Activity.Current);
+
+            Activity.Current = null;
 
             ActivityHelper.RestoreActivityIfNeeded(context.Items);
 
             Assert.Same(Activity.Current, rootActivity);
+        }
+
+        [Fact]
+        public void Can_Stop_Lost_Activity()
+        {
+            this.EnableAll(pair =>
+            {
+                Assert.NotNull(Activity.Current);
+                Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current.OperationName);
+            });
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
+            rootActivity.AddTag("k1", "v1");
+            rootActivity.AddTag("k2", "v2");
+
+            Activity.Current = null;
+
+            ActivityHelper.StopAspNetActivity(context.Items);
+            Assert.True(rootActivity.Duration != TimeSpan.Zero);
+            Assert.Null(Activity.Current);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
+        }
+
+        [Fact]
+        public void Can_Not_Stop_Lost_Activity_If_Not_In_Context()
+        {
+            this.EnableAll(pair =>
+            {
+                Assert.NotNull(Activity.Current);
+                Assert.Equal(ActivityHelper.AspNetActivityName, Activity.Current.OperationName);
+            });
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
+            context.Items.Remove(ActivityHelper.ActivityKey);
+            rootActivity.AddTag("k1", "v1");
+            rootActivity.AddTag("k2", "v2");
+
+            Activity.Current = null;
+
+            ActivityHelper.StopAspNetActivity(context.Items);
+            Assert.True(rootActivity.Duration == TimeSpan.Zero);
+            Assert.Null(Activity.Current);
+            Assert.Null(context.Items[ActivityHelper.ActivityKey]);
         }
 
         [Fact]
