@@ -45,13 +45,35 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
-        public void Can_Extract_Traceparent_And_RequestId()
+        public void Extract_RequestId_Is_Ignored_When_Traceparent_Is_Present()
         {
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
                 { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" }
+            };
+            Assert.True(activity.Extract(requestHeaders));
+
+            activity.Start();
+            Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
+            Assert.Equal("00-0123456789abcdef0123456789abcdef-0123456789abcdef-00", activity.ParentId);
+            Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", activity.ParentSpanId.ToHexString());
+            Assert.False(activity.Recorded);
+
+            Assert.Null(activity.TraceStateString);
+            Assert.Empty(activity.Baggage);
+        }
+
+        [Fact]
+        public void Can_Extract_First_Traceparent_When_Multiple_Traceparents_In_Headers()
+        {
+            var activity = new Activity(TestActivityName);
+            var requestHeaders = new NameValueCollection
+            {
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" },
+                { ActivityExtensions.TraceparentHeaderName, "00-fedcba09876543210fedcba09876543210-fedcba09876543210-01" }
             };
             Assert.True(activity.Extract(requestHeaders));
 
@@ -102,7 +124,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection
             {
-                { ActivityExtensions.TraceparentHeaderName, "" },
+                { ActivityExtensions.TraceparentHeaderName, string.Empty },
             };
 
             Assert.False(activity.Extract(requestHeaders));

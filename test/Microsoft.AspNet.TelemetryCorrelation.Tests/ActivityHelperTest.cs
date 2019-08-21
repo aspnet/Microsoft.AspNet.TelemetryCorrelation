@@ -325,7 +325,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
-        public void Can_Create_RootActivity_From_W3C_Headers()
+        public void Can_Create_RootActivityWithTraceState_From_W3C_TraceContext()
         {
             this.EnableAll();
             var requestHeaders = new Dictionary<string, string>

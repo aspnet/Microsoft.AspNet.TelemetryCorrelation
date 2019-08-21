@@ -15,7 +15,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     public static class ActivityExtensions
     {
         /// <summary>
-        /// Http header name to carry the Request Id.
+        /// Http header name to carry the Request Id: https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md.
         /// </summary>
         internal const string RequestIdHeaderName = "Request-Id";
 
@@ -79,7 +79,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 var tracestates = requestHeaders.GetValues(TracestateHeaderName);
                 if (tracestates != null && tracestates.Length > 0)
                 {
-                    if (tracestates.Length == 0 && !string.IsNullOrEmpty(tracestates[0]))
+                    if (tracestates.Length == 1 && !string.IsNullOrEmpty(tracestates[0]))
                     {
                         activity.TraceStateString = tracestates[0];
                     }
