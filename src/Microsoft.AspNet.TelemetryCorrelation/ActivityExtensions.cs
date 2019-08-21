@@ -15,9 +15,19 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     public static class ActivityExtensions
     {
         /// <summary>
-        /// Http header name to carry the Request ID.
+        /// Http header name to carry the Request Id: https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md.
         /// </summary>
-        internal const string RequestIDHeaderName = "Request-Id";
+        internal const string RequestIdHeaderName = "Request-Id";
+
+        /// <summary>
+        /// Http header name to carry the traceparent: https://www.w3.org/TR/trace-context/.
+        /// </summary>
+        internal const string TraceparentHeaderName = "traceparent";
+
+        /// <summary>
+        /// Http header name to carry the tracestate: https://www.w3.org/TR/trace-context/.
+        /// </summary>
+        internal const string TracestateHeaderName = "tracestate";
 
         /// <summary>
         /// Http header name to carry the correlation context.
@@ -25,7 +35,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         internal const string CorrelationContextHeaderName = "Correlation-Context";
 
         /// <summary>
-        /// Maximum length of Correlation-Context herader value.
+        /// Maximum length of Correlation-Context header value.
         /// </summary>
         internal const int MaxCorrelationContextLength = 1024;
 
@@ -55,11 +65,29 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 return false;
             }
 
-            var requestIDs = requestHeaders.GetValues(RequestIDHeaderName);
-            if (!string.IsNullOrEmpty(requestIDs?[0]))
+            var parents = requestHeaders.GetValues(TraceparentHeaderName);
+            if (parents == null || parents.Length == 0)
             {
-                // there may be several Request-Id header, but we only read the first one
-                activity.SetParentId(requestIDs[0]);
+                parents = requestHeaders.GetValues(RequestIdHeaderName);
+            }
+
+            if (parents != null && parents.Length > 0 && !string.IsNullOrEmpty(parents[0]))
+            {
+                // there may be several Request-Id or traceparent headers, but we only read the first one
+                activity.SetParentId(parents[0]);
+
+                var tracestates = requestHeaders.GetValues(TracestateHeaderName);
+                if (tracestates != null && tracestates.Length > 0)
+                {
+                    if (tracestates.Length == 1 && !string.IsNullOrEmpty(tracestates[0]))
+                    {
+                        activity.TraceStateString = tracestates[0];
+                    }
+                    else
+                    {
+                        activity.TraceStateString = string.Join(",", tracestates);
+                    }
+                }
 
                 // Header format - Correlation-Context: key1=value1, key2=value2
                 var baggages = requestHeaders.GetValues(CorrelationContextHeaderName);
