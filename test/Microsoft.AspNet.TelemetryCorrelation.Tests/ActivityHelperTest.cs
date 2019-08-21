@@ -285,7 +285,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             this.EnableAll();
             var requestHeaders = new Dictionary<string, string>
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b2cab6.1." },
                 { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
@@ -301,12 +301,61 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
+        public void Can_Create_RootActivity_From_W3C_Traceparent()
+        {
+            this.EnableAll();
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" },
+            };
+
+            var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
+            this.EnableAspNetListenerAndActivity();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
+
+            Assert.NotNull(rootActivity);
+            Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
+            Assert.Equal("00-0123456789abcdef0123456789abcdef-0123456789abcdef-00", rootActivity.ParentId);
+            Assert.Equal("0123456789abcdef0123456789abcdef", rootActivity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", rootActivity.ParentSpanId.ToHexString());
+            Assert.False(rootActivity.Recorded);
+
+            Assert.Null(rootActivity.TraceStateString);
+            Assert.Empty(rootActivity.Baggage);
+        }
+
+        [Fact]
+        public void Can_Create_RootActivityWithTraceState_From_W3C_TraceContext()
+        {
+            this.EnableAll();
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-01" },
+                { ActivityExtensions.TracestateHeaderName, "ts1=v1,ts2=v2" },
+            };
+
+            var context = HttpContextHelper.GetFakeHttpContext(headers: requestHeaders);
+            this.EnableAspNetListenerAndActivity();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, true);
+
+            Assert.NotNull(rootActivity);
+            Assert.Equal(ActivityIdFormat.W3C, rootActivity.IdFormat);
+            Assert.Equal("00-0123456789abcdef0123456789abcdef-0123456789abcdef-01", rootActivity.ParentId);
+            Assert.Equal("0123456789abcdef0123456789abcdef", rootActivity.TraceId.ToHexString());
+            Assert.Equal("0123456789abcdef", rootActivity.ParentSpanId.ToHexString());
+            Assert.True(rootActivity.Recorded);
+
+            Assert.Equal("ts1=v1,ts2=v2", rootActivity.TraceStateString);
+            Assert.Empty(rootActivity.Baggage);
+        }
+
+        [Fact]
         public void Can_Create_RootActivity_And_Ignore_Info_From_Request_Header_If_ParseHeaders_Is_False()
         {
             this.EnableAll();
             var requestHeaders = new Dictionary<string, string>
             {
-                { ActivityExtensions.RequestIDHeaderName, "|aba2f1e978b2cab6.1." },
+                { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b2cab6.1." },
                 { ActivityExtensions.CorrelationContextHeaderName, this.baggageInHeader }
             };
 
