@@ -34,6 +34,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
         private static readonly DiagnosticListener AspNetListener = new DiagnosticListener(AspNetListenerName);
 
+        private static readonly object EmptyPayload = new object();
+
         /// <summary>
         /// Stops the activity and notifies listeners about it.
         /// </summary>
@@ -52,7 +54,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (currentActivity != null)
             {
                 // stop Activity with Stop event
-                AspNetListener.StopActivity(currentActivity, new { });
+                AspNetListener.StopActivity(currentActivity, EmptyPayload);
                 contextItems[ActivityKey] = null;
             }
 
@@ -75,6 +77,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 {
                     rootActivity.Extract(context.Request.Unvalidated.Headers);
                 }
+
+                AspNetListener.OnActivityImport(rootActivity, null);
 
                 if (StartAspNetActivity(rootActivity))
                 {
@@ -104,11 +108,11 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
         private static bool StartAspNetActivity(Activity activity)
         {
-            if (AspNetListener.IsEnabled(AspNetActivityName, activity, new { }))
+            if (AspNetListener.IsEnabled(AspNetActivityName, activity, EmptyPayload))
             {
                 if (AspNetListener.IsEnabled(AspNetActivityStartName))
                 {
-                    AspNetListener.StartActivity(activity, new { });
+                    AspNetListener.StartActivity(activity, EmptyPayload);
                 }
                 else
                 {
