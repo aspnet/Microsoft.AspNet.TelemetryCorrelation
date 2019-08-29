@@ -26,8 +26,9 @@
       <VersionStartYear>2018</VersionStartYear>
       <VersionMajor>1</VersionMajor>
       <VersionMinor>0</VersionMinor>
-      <VersionRelease>5</VersionRelease>
-
+      <VersionRelease>6</VersionRelease>
+      <VersionBuild>beta1</VersionBuild>
+      
       <VersionBuild Condition="'$(VersionBuild)' == '' OR '$(VersionBuild)' == '0'">$([MSBuild]::Add(1, $([MSBuild]::Subtract($([System.DateTime]::Now.Year), $(VersionStartYear)))))$([System.DateTime]::Now.ToString("MMdd"))</VersionBuild>
       <VersionRevision Condition="'$(VersionRevision)' == ''">0</VersionRevision>
       <VersionRelease Condition="'$(VersionRelease)' == ''">0</VersionRelease>
