@@ -201,6 +201,41 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
         }
 
         [Fact]
+        public void OnImportActivity_Is_Called()
+        {
+            bool onImportIsCalled = false;
+            Activity importedActivity = null;
+            this.EnableAll(onImport: (activity, _) =>
+            {
+                onImportIsCalled = true;
+                importedActivity = activity;
+                Assert.Null(Activity.Current);
+            });
+
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
+            Assert.True(onImportIsCalled);
+            Assert.NotNull(importedActivity);
+            Assert.Equal(importedActivity, Activity.Current);
+            Assert.Equal(importedActivity, rootActivity);
+        }
+
+        [Fact]
+        public void OnImportActivity_Can_Set_Parent()
+        {
+            this.EnableAll(onImport: (activity, _) =>
+            {
+                Assert.Null(activity.ParentId);
+                activity.SetParentId("|guid.123.");
+            });
+
+            var context = HttpContextHelper.GetFakeHttpContext();
+            var rootActivity = ActivityHelper.CreateRootActivity(context, false);
+
+            Assert.Equal("|guid.123.", Activity.Current.ParentId);
+        }
+
+        [Fact]
         public async Task Can_Stop_Root_Activity_If_It_Is_Broken()
         {
             this.EnableAll();
@@ -400,14 +435,18 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             return activity;
         }
 
-        private void EnableAll(Action<KeyValuePair<string, object>> onNext = null)
+        private void EnableAll(Action<KeyValuePair<string, object>> onNext = null, Action<Activity, object> onImport = null)
         {
             this.subscriptionAllListeners = DiagnosticListener.AllListeners.Subscribe(listener =>
             {
                 // if AspNetListener has subscription, then it is enabled
                 if (listener.Name == ActivityHelper.AspNetListenerName)
                 {
-                    this.subscriptionAspNetListener = listener.Subscribe(new TestDiagnosticListener(onNext), (name) => true);
+                    this.subscriptionAspNetListener = listener.Subscribe(
+                        new TestDiagnosticListener(onNext),
+                        (name, a1, a2) => true,
+                        (a, o) => onImport?.Invoke(a, o),
+                        (a, o) => { });
                 }
             });
         }
