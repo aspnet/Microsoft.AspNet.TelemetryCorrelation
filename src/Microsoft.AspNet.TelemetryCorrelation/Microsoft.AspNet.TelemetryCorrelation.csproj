@@ -42,16 +42,17 @@
     <!--https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets-->
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <!--PackageOutputPath>Defined in Directory.Build.props</PackageOutputPath-->
     <PackageId>Microsoft.AspNet.TelemetryCorrelation</PackageId>
     <!--PackageVersion is defined in from VersionPrefix and VersionSuffix -->
     <!--PackageVersion></PackageVersion-->
-    <Authors>Microsoft,aspnet</Authors>
+    <Authors>Microsoft</Authors>
     <Title>Microsoft Asp.Net telemetry correlation</Title>
     <Description>A module that instruments incoming request with System.Diagnostics.Activity and notifies listeners with DiagnosticsSource.</Description>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <PackageLicenseUrl>http://www.microsoft.com/web/webpi/eula/net_library_eula_ENU.htm</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>http://www.asp.net/</PackageProjectUrl>
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageTags>Diagnostics DiagnosticSource Correlation Activity ASP.NET</PackageTags>
