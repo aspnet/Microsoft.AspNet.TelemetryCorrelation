@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26202.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29306.81
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{CE6B50B2-34AE-44C9-940A-4E48C3E1B3BC}"
 EndProject
@@ -14,6 +14,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{504D7010-38CC-4B07-BC57-D7030209D631}"
 	ProjectSection(SolutionItems) = preProject
 		tools\Common.props = tools\Common.props
+		NuGet.Config = NuGet.Config
 		README.md = README.md
 	EndProjectSection
 EndProject
