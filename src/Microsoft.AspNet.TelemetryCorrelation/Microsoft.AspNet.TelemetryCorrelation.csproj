@@ -11,7 +11,7 @@
     <SignAssembly>true</SignAssembly>
     <DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <CodeAnalysisRuleSet>Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\Shared\Microsoft.AspNet.TelemetryCorrelation.ruleset</CodeAnalysisRuleSet>
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -78,9 +78,7 @@
     </PackageReference>
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.6.0" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Microsoft.AspNet.TelemetryCorrelation.ruleset" />
-  </ItemGroup>
+  <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <ItemGroup>
     <Content Include="web.config.install.xdt" />
     <Content Include="web.config.uninstall.xdt" />

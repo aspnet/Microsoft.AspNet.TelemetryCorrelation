@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>f8080957-3350-4b8d-9401-74b035d07a85</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>Microsoft.AspNet.TelemetryCorrelation</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)ActivityExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AspNetTelemetryCorrelationEventSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\BaseHeaderParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\GenericHeaderParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\HeaderUtilities.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpHeaderParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpParseResult.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpRuleParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\NameValueHeaderValue.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)Microsoft.AspNet.TelemetryCorrelation.ruleset" />
+  </ItemGroup>
+</Project>
