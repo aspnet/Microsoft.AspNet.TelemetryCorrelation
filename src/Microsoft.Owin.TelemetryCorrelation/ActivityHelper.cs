@@ -34,8 +34,7 @@ namespace Microsoft.Owin.TelemetryCorrelation
         /// Creates root (first level) activity that describes incoming request.
         /// </summary>
         /// <param name="request">Inbound HTTP request.</param>
-        /// <returns>New root activity.</returns>
-        public static Activity CreateRootActivity(IOwinRequest request)
+        public static void CreateRootActivity(IOwinRequest request)
         {
             if (OwinListener.IsEnabled() && OwinListener.IsEnabled(OwinActivityName))
             {
@@ -48,11 +47,23 @@ namespace Microsoft.Owin.TelemetryCorrelation
                 if (StartAspNetActivity(rootActivity))
                 {
                     AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(rootActivity.Id);
-                    return rootActivity;
                 }
             }
+        }
 
-            return null;
+        /// <summary>
+        /// Stops the activity and notifies listeners about it.
+        /// </summary>
+        public static void StopOwinActivity()
+        {
+            var currentActivity = Activity.Current;
+            if (currentActivity != null)
+            {
+                // stop Activity with Stop event
+                OwinListener.StopActivity(currentActivity, EmptyPayload);
+            }
+
+            AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(currentActivity?.Id, currentActivity?.OperationName);
         }
 
         private static bool StartAspNetActivity(Activity activity)

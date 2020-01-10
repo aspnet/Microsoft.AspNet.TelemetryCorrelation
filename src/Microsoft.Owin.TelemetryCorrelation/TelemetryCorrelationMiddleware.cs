@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.AspNet.TelemetryCorrelation;
 
 namespace Microsoft.Owin.TelemetryCorrelation
 {
@@ -23,18 +24,23 @@ namespace Microsoft.Owin.TelemetryCorrelation
         /// <inheritdoc />
         public override async Task Invoke(IOwinContext context)
         {
-            var activity = ActivityHelper.CreateRootActivity(context.Request);
+            AspNetTelemetryCorrelationEventSource.Log.TraceCallback("TelemetryCorrelationMiddleware_Invoke_Begin");
+
+            ActivityHelper.CreateRootActivity(context.Request);
             try
             {
                 await Next.Invoke(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
+                AspNetTelemetryCorrelationEventSource.Log.OnExecuteRequestStepInvocationError(ex.Message);
                 throw;
             }
             finally
             {
-                activity.Stop();
+                AspNetTelemetryCorrelationEventSource.Log.TraceCallback("TelemetryCorrelationMiddleware_Invoke_End");
+
+                ActivityHelper.StopOwinActivity();
             }
         }
     }
