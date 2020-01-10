@@ -22,7 +22,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             var activity = new Activity(TestActivityName);
             var requestHeaders = new NameValueCollection();
 
-            Assert.False(activity.Extract(requestHeaders));
+            Assert.False(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.True(string.IsNullOrEmpty(activity.ParentId));
             Assert.Null(activity.TraceStateString);
@@ -38,7 +38,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b22222.1" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             Assert.Empty(activity.Baggage);
@@ -53,7 +53,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             activity.Start();
             Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.TraceparentHeaderName, "00-0123456789abcdef0123456789abcdef-0123456789abcdef-00" },
                 { ActivityExtensions.TraceparentHeaderName, "00-fedcba09876543210fedcba09876543210-fedcba09876543210-01" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             activity.Start();
             Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
@@ -99,7 +99,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" },
             };
 
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
             activity.Start();
             Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
             Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
@@ -127,7 +127,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.TraceparentHeaderName, string.Empty },
             };
 
-            Assert.False(activity.Extract(requestHeaders));
+            Assert.False(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Equal(default, activity.ParentSpanId);
             Assert.Null(activity.ParentId);
@@ -144,7 +144,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.TracestateHeaderName, "ts2=v2" },
             };
 
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
             activity.Start();
             Assert.Equal(ActivityIdFormat.W3C, activity.IdFormat);
             Assert.Equal("0123456789abcdef0123456789abcdef", activity.TraceId.ToHexString());
@@ -162,7 +162,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             {
                 { ActivityExtensions.RequestIdHeaderName, string.Empty }
             };
-            Assert.False(activity.Extract(requestHeaders));
+            Assert.False(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Null(activity.ParentId);
             Assert.Empty(activity.Baggage);
@@ -176,7 +176,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
             {
                 { ActivityExtensions.TraceparentHeaderName, string.Empty }
             };
-            Assert.False(activity.Extract(requestHeaders));
+            Assert.False(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Null(activity.ParentId);
             Assert.Null(activity.TraceStateString);
@@ -192,7 +192,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.RequestIdHeaderName, "|aba2f1e978b11111.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key1=123,key2=456,key3=789" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>
@@ -217,7 +217,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.CorrelationContextHeaderName, "key4=abc,key5=def" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key6=xyz" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>
@@ -246,7 +246,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.CorrelationContextHeaderName, "key6????xyz" },
                 { ActivityExtensions.CorrelationContextHeaderName, "key7=123=456" }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             Assert.Equal("|aba2f1e978b11111.1", activity.ParentId);
             var baggageItems = new List<KeyValuePair<string, string>>
@@ -296,7 +296,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation.Tests
                 { ActivityExtensions.RequestIdHeaderName, "|abc.1" },
                 { ActivityExtensions.CorrelationContextHeaderName, correlationContext }
             };
-            Assert.True(activity.Extract(requestHeaders));
+            Assert.True(activity.Extract(new NameValueCollectionHeaderStore(requestHeaders)));
 
             var baggageItems = Enumerable.Range(0, 74).Select(i => new KeyValuePair<string, string>("key" + i, "value" + i)).ToList();
             if (expectedLength < 1024)

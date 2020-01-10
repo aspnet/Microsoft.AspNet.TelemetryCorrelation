@@ -50,7 +50,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                 }
                 catch (Exception e)
                 {
-                    AspNetTelemetryCorrelationEventSource.Log.OnExecuteRequestStepInvokationError(e.Message);
+                    AspNetTelemetryCorrelationEventSource.Log.OnExecuteRequestStepInvocationError(e.Message);
                 }
             }
             else

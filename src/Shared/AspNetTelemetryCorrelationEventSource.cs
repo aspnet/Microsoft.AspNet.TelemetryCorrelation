@@ -42,7 +42,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         [Event(5, Message = "Failed to extract activity, reason '{0}'", Level = EventLevel.Error)]
-        public void ActvityExtractionError(string reason)
+        public void ActivityExtractionError(string reason)
         {
             WriteEvent(5, reason);
         }
@@ -66,7 +66,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         }
 
         [Event(9, Message = "Failed to invoke OnExecuteRequestStep, Error='{0}'", Level = EventLevel.Error)]
-        public void OnExecuteRequestStepInvokationError(string error)
+        public void OnExecuteRequestStepInvocationError(string error)
         {
             WriteEvent(9, error);
         }

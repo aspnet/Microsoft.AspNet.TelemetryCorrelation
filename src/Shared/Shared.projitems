@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpHeaderParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpParseResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpRuleParser.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\IHeaderStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\NameValueHeaderValue.cs" />
   </ItemGroup>
   <ItemGroup>

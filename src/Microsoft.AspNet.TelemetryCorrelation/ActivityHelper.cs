@@ -75,7 +75,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
 
                 if (parseHeaders)
                 {
-                    rootActivity.Extract(context.Request.Unvalidated.Headers);
+                    rootActivity.Extract(new NameValueCollectionHeaderStore(context.Request.Unvalidated.Headers));
                 }
 
                 AspNetListener.OnActivityImport(rootActivity, null);

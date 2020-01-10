@@ -45,41 +45,41 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// <param name="activity">Instance of activity that has not been started yet.</param>
         /// <param name="requestHeaders">Request headers collection.</param>
         /// <returns>true if request was parsed successfully, false - otherwise.</returns>
-        public static bool Extract(this Activity activity, NameValueCollection requestHeaders)
+        public static bool Extract(this Activity activity, IHeaderStore requestHeaders)
         {
             if (activity == null)
             {
-                AspNetTelemetryCorrelationEventSource.Log.ActvityExtractionError("activity is null");
+                AspNetTelemetryCorrelationEventSource.Log.ActivityExtractionError("activity is null");
                 return false;
             }
 
             if (activity.ParentId != null)
             {
-                AspNetTelemetryCorrelationEventSource.Log.ActvityExtractionError("ParentId is already set on activity");
+                AspNetTelemetryCorrelationEventSource.Log.ActivityExtractionError("ParentId is already set on activity");
                 return false;
             }
 
             if (activity.Id != null)
             {
-                AspNetTelemetryCorrelationEventSource.Log.ActvityExtractionError("Activity is already started");
+                AspNetTelemetryCorrelationEventSource.Log.ActivityExtractionError("Activity is already started");
                 return false;
             }
 
             var parents = requestHeaders.GetValues(TraceparentHeaderName);
-            if (parents == null || parents.Length == 0)
+            if (parents == null || parents.Count == 0)
             {
                 parents = requestHeaders.GetValues(RequestIdHeaderName);
             }
 
-            if (parents != null && parents.Length > 0 && !string.IsNullOrEmpty(parents[0]))
+            if (parents != null && parents.Count > 0 && !string.IsNullOrEmpty(parents[0]))
             {
                 // there may be several Request-Id or traceparent headers, but we only read the first one
                 activity.SetParentId(parents[0]);
 
                 var tracestates = requestHeaders.GetValues(TracestateHeaderName);
-                if (tracestates != null && tracestates.Length > 0)
+                if (tracestates != null && tracestates.Count > 0)
                 {
-                    if (tracestates.Length == 1 && !string.IsNullOrEmpty(tracestates[0]))
+                    if (tracestates.Count == 1 && !string.IsNullOrEmpty(tracestates[0]))
                     {
                         activity.TraceStateString = tracestates[0];
                     }
@@ -138,7 +138,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// <returns>true if request was parsed successfully, false - otherwise.</returns>
         [Obsolete("Method is obsolete, use Extract method instead", true)]
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public static bool TryParse(this Activity activity, NameValueCollection requestHeaders)
+        public static bool TryParse(this Activity activity, IHeaderStore requestHeaders)
         {
             return Extract(activity, requestHeaders);
         }
