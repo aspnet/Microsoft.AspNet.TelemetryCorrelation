@@ -74,6 +74,10 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Owin" Version="4.0.1" />
         <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.6.0" />
+        <PackageReference Include="Microsoft.Diagnostics.Tracing.EventRegister" Version="1.1.28">
+            <PrivateAssets>All</PrivateAssets>
+            <ExcludeAssets Condition=" '$(OS)' != 'Windows_NT' ">All</ExcludeAssets>
+        </PackageReference>
     </ItemGroup>
     <Import Project="..\Shared\Shared.projitems" Label="Shared" />
 </Project>

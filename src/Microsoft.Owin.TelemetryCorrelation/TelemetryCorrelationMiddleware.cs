@@ -26,7 +26,7 @@ namespace Microsoft.Owin.TelemetryCorrelation
         {
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("TelemetryCorrelationMiddleware_Invoke_Begin");
 
-            ActivityHelper.CreateRootActivity(context.Request);
+            ActivityHelper.CreateRootActivity(context);
             try
             {
                 await Next.Invoke(context).ConfigureAwait(false);
@@ -40,7 +40,7 @@ namespace Microsoft.Owin.TelemetryCorrelation
             {
                 AspNetTelemetryCorrelationEventSource.Log.TraceCallback("TelemetryCorrelationMiddleware_Invoke_End");
 
-                ActivityHelper.StopOwinActivity();
+                ActivityHelper.StopOwinActivity(context);
             }
         }
     }

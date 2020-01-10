@@ -75,6 +75,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Diagnostics.Tracing.EventRegister" Version="1.1.28">
       <PrivateAssets>All</PrivateAssets>
+      <ExcludeAssets Condition=" '$(OS)' != 'Windows_NT' ">All</ExcludeAssets>
     </PackageReference>
     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.6.0" />
   </ItemGroup>

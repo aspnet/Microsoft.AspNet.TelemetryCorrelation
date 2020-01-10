@@ -26,6 +26,11 @@ namespace Microsoft.Owin.TelemetryCorrelation
         /// </summary>
         public const string OwinActivityStartName = "Microsoft.Owin.HttpReqIn.Start";
 
+        /// <summary>
+        /// Key to store the activity in OwinContext.
+        /// </summary>
+        public const string ActivityKey = "__OwinActivity__";
+
         private static readonly DiagnosticListener OwinListener = new DiagnosticListener(OwinListenerName);
 
         private static readonly object EmptyPayload = new object();
@@ -33,34 +38,49 @@ namespace Microsoft.Owin.TelemetryCorrelation
         /// <summary>
         /// Creates root (first level) activity that describes incoming request.
         /// </summary>
-        /// <param name="request">Inbound HTTP request.</param>
-        public static void CreateRootActivity(IOwinRequest request)
+        /// <param name="context">Inbound HTTP request.</param>
+        /// <returns>New root activity.</returns>
+        public static Activity CreateRootActivity(IOwinContext context)
         {
             if (OwinListener.IsEnabled() && OwinListener.IsEnabled(OwinActivityName))
             {
                 var rootActivity = new Activity(OwinActivityName);
 
-                rootActivity.Extract(new HeaderDictionaryStore(request.Headers));
+                rootActivity.Extract(new HeaderDictionaryStore(context.Request.Headers));
 
                 OwinListener.OnActivityImport(rootActivity, null);
 
                 if (StartAspNetActivity(rootActivity))
                 {
+                    context.Set(ActivityKey, rootActivity);
                     AspNetTelemetryCorrelationEventSource.Log.ActivityStarted(rootActivity.Id);
+                    return rootActivity;
                 }
             }
+
+            return null;
         }
 
         /// <summary>
         /// Stops the activity and notifies listeners about it.
         /// </summary>
-        public static void StopOwinActivity()
+        /// <param name="context">Owin context.</param>
+        public static void StopOwinActivity(IOwinContext context)
         {
             var currentActivity = Activity.Current;
+            var owinActivity = context.Get<Activity>(ActivityKey);
+
+            if (currentActivity != owinActivity)
+            {
+                Activity.Current = owinActivity;
+                currentActivity = owinActivity;
+            }
+
             if (currentActivity != null)
             {
                 // stop Activity with Stop event
                 OwinListener.StopActivity(currentActivity, EmptyPayload);
+                context.Environment.Remove(ActivityKey);
             }
 
             AspNetTelemetryCorrelationEventSource.Log.ActivityStopped(currentActivity?.Id, currentActivity?.OperationName);

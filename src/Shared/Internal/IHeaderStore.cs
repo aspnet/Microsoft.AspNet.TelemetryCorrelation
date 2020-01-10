@@ -11,8 +11,8 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// Get the associated values from the collection in their original format.
         /// Returns null if the key is not present.
         /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
+        /// <param name="key">The key, e.g. HTTP header name.</param>
+        /// <returns>Values for the specified key.</returns>
         ReadOnlyCollection<string> GetValues(string key);
     }
 }
