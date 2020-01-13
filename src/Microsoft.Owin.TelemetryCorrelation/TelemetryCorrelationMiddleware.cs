@@ -30,17 +30,18 @@ namespace Microsoft.Owin.TelemetryCorrelation
             try
             {
                 await Next.Invoke(context).ConfigureAwait(false);
+                ActivityHelper.StopOwinActivity(context);
             }
             catch (Exception ex)
             {
                 AspNetTelemetryCorrelationEventSource.Log.OnExecuteRequestStepInvocationError(ex.Message);
+                ActivityHelper.StopOwinActivity(context, ex);
+
                 throw;
             }
             finally
             {
                 AspNetTelemetryCorrelationEventSource.Log.TraceCallback("TelemetryCorrelationMiddleware_Invoke_End");
-
-                ActivityHelper.StopOwinActivity(context);
             }
         }
     }

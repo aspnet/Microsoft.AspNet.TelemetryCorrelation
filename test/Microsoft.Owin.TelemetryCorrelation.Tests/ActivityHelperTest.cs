@@ -208,8 +208,7 @@ namespace Microsoft.Owin.TelemetryCorrelation.Tests
         {
             this.EnableAll();
             var context = CreateOwinContext();
-            ActivityHelper.CreateRootActivity(context);
-            var rootActivity = Activity.Current;
+            var rootActivity = ActivityHelper.CreateRootActivity(context);
 
             var child = new Activity("child").Start();
             new Activity("grandchild").Start();
@@ -242,8 +241,7 @@ namespace Microsoft.Owin.TelemetryCorrelation.Tests
         {
             this.EnableAll();
             var context = CreateOwinContext();
-            ActivityHelper.CreateRootActivity(context);
-            var root = Activity.Current;
+            var root = ActivityHelper.CreateRootActivity(context);
             new Activity("child").Start();
 
             for (int i = 0; i < 2; i++)
@@ -273,8 +271,7 @@ namespace Microsoft.Owin.TelemetryCorrelation.Tests
         {
             this.EnableAll();
             var context = CreateOwinContext();
-            ActivityHelper.CreateRootActivity(context);
-            var root = Activity.Current;
+            var root = ActivityHelper.CreateRootActivity(context);
 
             for (int i = 0; i < 129; i++)
             {
@@ -287,6 +284,19 @@ namespace Microsoft.Owin.TelemetryCorrelation.Tests
             Assert.True(root.Duration != TimeSpan.Zero);
             Assert.Null(context.Get<Activity>(ActivityHelper.ActivityKey));
             Assert.Null(Activity.Current);
+        }
+
+        [Fact]
+        public void Can_Stop_Activity_And_Pass_Exception_As_A_Payload()
+        {
+            object exception = null;
+            this.EnableAll(onNext: kvp => { exception = GetProperty(kvp.Value, "Exception"); });
+            var context = CreateOwinContext();
+            ActivityHelper.CreateRootActivity(context);
+            ActivityHelper.StopOwinActivity(context, new ArgumentException());
+
+            Assert.NotNull(exception);
+            Assert.IsType<ArgumentException>(exception);
         }
 
         private static IOwinContext CreateOwinContext(string page = "/page", string query = "", IDictionary<string, string> headers = null)
@@ -312,6 +322,11 @@ namespace Microsoft.Owin.TelemetryCorrelation.Tests
             }
 
             return context;
+        }
+
+        private static object GetProperty(object obj, string propertyName)
+        {
+            return obj.GetType().GetTypeInfo().GetDeclaredProperty(propertyName)?.GetValue(obj);
         }
 
         private Activity CreateActivity()

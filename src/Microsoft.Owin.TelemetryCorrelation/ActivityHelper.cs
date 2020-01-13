@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.AspNet.TelemetryCorrelation;
 
@@ -65,7 +66,8 @@ namespace Microsoft.Owin.TelemetryCorrelation
         /// Stops the activity and notifies listeners about it.
         /// </summary>
         /// <param name="context">Owin context.</param>
-        public static void StopOwinActivity(IOwinContext context)
+        /// <param name="exception">Captured exception instance.</param>
+        public static void StopOwinActivity(IOwinContext context, Exception exception = null)
         {
             var currentActivity = Activity.Current;
             var owinActivity = context.Get<Activity>(ActivityKey);
@@ -79,7 +81,9 @@ namespace Microsoft.Owin.TelemetryCorrelation
             if (currentActivity != null)
             {
                 // stop Activity with Stop event
-                OwinListener.StopActivity(currentActivity, EmptyPayload);
+                OwinListener.StopActivity(
+                    currentActivity,
+                    exception != null ? new { Exception = exception } : EmptyPayload);
                 context.Environment.Remove(ActivityKey);
             }
 
