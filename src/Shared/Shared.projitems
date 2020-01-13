@@ -11,13 +11,13 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)ActivityExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AspNetTelemetryCorrelationEventSource.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IHeaderStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\BaseHeaderParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\GenericHeaderParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HeaderUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpHeaderParser.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpParseResult.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\HttpRuleParser.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Internal\IHeaderStore.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Internal\NameValueHeaderValue.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 
@@ -12,7 +11,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
     /// Extensions of Activity class
     /// </summary>
     [EditorBrowsable(EditorBrowsableState.Never)]
-    public static class ActivityExtensions
+    public static partial class ActivityExtensions
     {
         /// <summary>
         /// Http header name to carry the Request Id: https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md.

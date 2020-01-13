@@ -4,7 +4,7 @@
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
         <OutputType>Library</OutputType>
-        <TargetFrameworks>net452</TargetFrameworks>
+        <TargetFrameworks>net45</TargetFrameworks>
         <FileAlignment>512</FileAlignment>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
