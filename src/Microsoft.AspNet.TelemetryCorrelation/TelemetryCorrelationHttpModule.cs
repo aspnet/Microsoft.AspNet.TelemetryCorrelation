@@ -105,8 +105,21 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             // BeginRequest has never been called
             if (!context.Items.Contains(BeginCalledFlag))
             {
-                // Activity has never been started
-                ActivityHelper.CreateRootActivity(context, ParseHeaders);
+                // Exception happened before BeginRequest
+                if (context.Error != null)
+                {
+                    // Activity has never been started
+                    ActivityHelper.CreateRootActivity(context, ParseHeaders);
+                }
+                else
+                {
+                    // Rewrite: In case of rewrite, a new request context is created, called the child request, and it goes through the entire IIS/ASP.NET integrated pipeline.
+                    // The child request can be mapped to any of the handlers configured in IIS, and it's execution is no different than it would be if it was received via the HTTP stack.
+                    // The parent request jumps ahead in the pipeline to the end request notification, and waits for the child request to complete.
+                    // When the child request completes, the parent request executes the end request notifications and completes itself.
+                    // Ignore creating root activity for parent request as control got transferred from rewrite module to EndRequest with no request flow.
+                    return;
+                }
             }
 
             ActivityHelper.StopAspNetActivity(context.Items);
