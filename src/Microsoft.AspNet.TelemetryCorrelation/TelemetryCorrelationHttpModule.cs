@@ -98,6 +98,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         private void Application_EndRequest(object sender, EventArgs e)
         {
             AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_EndRequest");
+            bool trackActivity = true;
 
             var context = ((HttpApplication)sender).Context;
 
@@ -118,11 +119,14 @@ namespace Microsoft.AspNet.TelemetryCorrelation
                     // The parent request jumps ahead in the pipeline to the end request notification, and waits for the child request to complete.
                     // When the child request completes, the parent request executes the end request notifications and completes itself.
                     // Ignore creating root activity for parent request as control got transferred from rewrite module to EndRequest with no request flow.
-                    return;
+                    trackActivity = false;
                 }
             }
 
-            ActivityHelper.StopAspNetActivity(context.Items);
+            if (trackActivity)
+            {
+                ActivityHelper.StopAspNetActivity(context.Items);
+            }
         }
     }
 }
