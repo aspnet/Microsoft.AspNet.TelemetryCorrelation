@@ -54,6 +54,7 @@
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>http://www.asp.net/</PackageProjectUrl>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/aspnet/Microsoft.AspNet.TelemetryCorrelation/e867e87e3a009223685b553dbb667b08bb9cab0c/LICENSE.txt</PackageLicenseUrl>
     <PackageIconUrl>http://go.microsoft.com/fwlink/?LinkID=288859</PackageIconUrl>
     <PackageTags>Diagnostics DiagnosticSource Correlation Activity ASP.NET</PackageTags>
     <RepositoryUrl>https://github.com/aspnet/Microsoft.AspNet.TelemetryCorrelation/</RepositoryUrl>
