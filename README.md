@@ -57,3 +57,4 @@ This http module is used by Application Insights. See
 [http-protocol-specification]: https://github.com/dotnet/corefx/blob/master/src/System.Diagnostics.DiagnosticSource/src/HttpCorrelationProtocol.md
 [usage-in-ai-docs]: https://docs.microsoft.com/azure/application-insights/application-insights-correlation
 [usage-in-ai-code]: https://github.com/Microsoft/ApplicationInsights-dotnet-server
+
