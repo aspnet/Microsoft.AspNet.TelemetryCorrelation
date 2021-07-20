@@ -45,6 +45,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         {
             context.BeginRequest += Application_BeginRequest;
             context.EndRequest += Application_EndRequest;
+            context.Error += Application_Error;
 
             // OnExecuteRequestStep is availabile starting with 4.7.1
             // If this is executed in 4.7.1 runtime (regardless of targeted .NET version),
@@ -134,6 +135,24 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             if (trackActivity)
             {
                 ActivityHelper.StopAspNetActivity(context.Items);
+            }
+        }
+
+        private void Application_Error(object sender, EventArgs e)
+        {
+            AspNetTelemetryCorrelationEventSource.Log.TraceCallback("Application_Error");
+
+            var context = ((HttpApplication)sender).Context;
+
+            var exception = context.Error;
+            if (exception != null)
+            {
+                if (!context.Items.Contains(BeginCalledFlag))
+                {
+                    ActivityHelper.CreateRootActivity(context, ParseHeaders);
+                }
+
+                ActivityHelper.WriteActivityException(context.Items, exception);
             }
         }
     }
