@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Diagnostics;
 using System.Web;
@@ -43,7 +44,7 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public static void StopAspNetActivity(IDictionary contextItems)
         {
             var currentActivity = Activity.Current;
-            Activity aspNetActivity = contextItems.Contains(ActivityKey) ? (Activity)contextItems[ActivityKey] : null;
+            Activity aspNetActivity = (Activity)contextItems[ActivityKey];
 
             if (currentActivity != aspNetActivity)
             {
@@ -91,6 +92,22 @@ namespace Microsoft.AspNet.TelemetryCorrelation
             return null;
         }
 
+        public static void WriteActivityException(IDictionary contextItems, Exception exception)
+        {
+            Activity aspNetActivity = (Activity)contextItems[ActivityKey];
+
+            if (aspNetActivity != null)
+            {
+                if (Activity.Current != aspNetActivity)
+                {
+                    Activity.Current = aspNetActivity;
+                }
+
+                AspNetListener.Write(aspNetActivity.OperationName + ".Exception", exception);
+                AspNetTelemetryCorrelationEventSource.Log.ActivityException(aspNetActivity.Id, aspNetActivity.OperationName, exception);
+            }
+        }
+
         /// <summary>
         /// It's possible that a request is executed in both native threads and managed threads,
         /// in such case Activity.Current will be lost during native thread and managed thread switch.
@@ -100,9 +117,13 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// <param name="contextItems">HttpContext.Items dictionary.</param>
         internal static void RestoreActivityIfNeeded(IDictionary contextItems)
         {
-            if (Activity.Current == null && contextItems.Contains(ActivityKey))
+            if (Activity.Current == null)
             {
-                Activity.Current = (Activity)contextItems[ActivityKey];
+                Activity aspNetActivity = (Activity)contextItems[ActivityKey];
+                if (aspNetActivity != null)
+                {
+                    Activity.Current = aspNetActivity;
+                }
             }
         }
 

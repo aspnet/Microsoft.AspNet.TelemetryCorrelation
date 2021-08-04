@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.Tracing;
 #pragma warning disable SA1600 // Elements must be documented
 
@@ -16,6 +17,15 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         /// Instance of the PlatformEventSource class.
         /// </summary>
         public static readonly AspNetTelemetryCorrelationEventSource Log = new AspNetTelemetryCorrelationEventSource();
+
+        [NonEvent]
+        public void ActivityException(string id, string eventName, Exception ex)
+        {
+            if (IsEnabled(EventLevel.Error, (EventKeywords)(-1)))
+            {
+                ActivityException(id, eventName, ex.ToString());
+            }
+        }
 
         [Event(1, Message = "Callback='{0}'", Level = EventLevel.Verbose)]
         public void TraceCallback(string callback)
@@ -75,6 +85,12 @@ namespace Microsoft.AspNet.TelemetryCorrelation
         public void ActivityStackIsTooDeepDetails(string id, string name)
         {
             WriteEvent(10, id, name);
+        }
+
+        [Event(11, Message = "Activity exception, Id='{0}', Name='{1}': {2}", Level = EventLevel.Error)]
+        public void ActivityException(string id, string eventName, string ex)
+        {
+            WriteEvent(11, id, eventName, ex);
         }
     }
 }
